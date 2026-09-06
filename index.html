@@ -1,0 +1,1523 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Tommy Lalane · CRM</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgcng9IjIwIiBmaWxsPSIjMDAwIi8+PHRleHQgeD0iNTAiIHk9IjcwIiBmb250LWZhbWlseT0iR2VvcmdpYSwnVGltZXMgTmV3IFJvbWFuJyxzZXJpZiIgZm9udC1zaXplPSI2MCIgZm9udC13ZWlnaHQ9IjcwMCIgZmlsbD0iI2ZmZiIgdGV4dC1hbmNob3I9Im1pZGRsZSI+bWc8L3RleHQ+PC9zdmc+">
+<style>
+/* ============================================================
+   PALETA NATI + APPLE STYLE
+   ============================================================ */
+:root{
+  --rosa:#FADADD;
+  --morado:#D9B8E8;
+  --verde:#C8E6C9;
+  --blanco:#FFFFFF;
+  --gris-claro:#F5F5F7;
+  --negro:#1D1D1F;
+  --texto-2:#6E6E73;
+  --borde:#E5E5EA;
+  --peligro:#FF6B6B;
+  --advertencia:#FFD180;
+  --info:#B5D8F5;
+  --rosa-soft:rgba(250,218,221,.45);
+  --shadow-sm:0 2px 8px rgba(0,0,0,.04);
+  --shadow-md:0 4px 20px rgba(250,218,221,.40);
+  --shadow-lg:0 12px 40px rgba(0,0,0,.10);
+  --ease:cubic-bezier(.4,0,.2,1);
+  --r:16px;
+  --r-sm:12px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",Trebuchet MS,sans-serif;
+  background:var(--gris-claro);
+  color:var(--negro);
+  -webkit-font-smoothing:antialiased;
+  display:flex;
+  min-height:100vh;
+}
+/* ---------- SIDEBAR ---------- */
+#sidebar{
+  width:230px;flex-shrink:0;
+  background:var(--blanco);
+  border-right:1px solid var(--borde);
+  display:flex;flex-direction:column;
+  padding:22px 14px;gap:6px;
+  position:sticky;top:0;height:100vh;
+}
+.brand{display:flex;align-items:center;gap:11px;padding:6px 8px 18px}
+.brand .logo{
+  width:38px;height:38px;border-radius:11px;flex-shrink:0;
+  background:linear-gradient(135deg,var(--rosa),var(--morado));
+  display:flex;align-items:center;justify-content:center;font-size:20px;
+  box-shadow:var(--shadow-sm);
+}
+.brand .title{font-size:14px;font-weight:700;line-height:1.15}
+.brand .sub{font-size:11px;color:var(--texto-2);font-weight:500}
+.navitem{
+  display:flex;align-items:center;gap:12px;
+  padding:10px 12px;border-radius:var(--r-sm);
+  font-size:14px;font-weight:550;color:var(--texto-2);
+  cursor:pointer;border:none;background:none;text-align:left;width:100%;
+  transition:all .2s var(--ease);
+}
+.navitem .ico{font-size:17px;width:22px;text-align:center}
+.navitem:hover{background:var(--gris-claro);color:var(--negro)}
+.navitem.active{
+  background:linear-gradient(135deg,var(--rosa),var(--rosa-soft));
+  color:var(--negro);font-weight:650;box-shadow:var(--shadow-sm);
+}
+.sidebar-foot{margin-top:auto;font-size:11px;color:var(--texto-2);padding:10px 8px;line-height:1.5}
+/* ---------- MAIN ---------- */
+#main{flex:1;min-width:0;overflow-x:hidden}
+.topbar{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:20px 32px;border-bottom:1px solid var(--borde);
+  background:rgba(255,255,255,.7);backdrop-filter:blur(10px);
+  position:sticky;top:0;z-index:20;
+}
+.topbar h1{font-size:20px;font-weight:700;display:flex;gap:10px;align-items:center}
+.topbar .who{font-size:13px;color:var(--texto-2);display:flex;gap:8px;align-items:center}
+.avatar{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--morado),var(--rosa));display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700}
+.view{padding:26px 32px;animation:viewIn .22s var(--ease)}
+@keyframes viewIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.view.hidden{display:none}
+/* ---------- PERIOD BAR ---------- */
+.periodbar{
+  display:flex;flex-wrap:wrap;align-items:center;gap:12px;
+  background:var(--blanco);border:1px solid var(--borde);
+  border-radius:var(--r);padding:14px 18px;margin-bottom:22px;box-shadow:var(--shadow-sm);
+}
+.periodbar label{font-size:13px;font-weight:600;color:var(--texto-2)}
+select,input[type=date],input[type=number],input[type=text]{
+  font-family:inherit;font-size:13px;padding:8px 12px;border:1px solid var(--borde);
+  border-radius:10px;background:var(--blanco);color:var(--negro);outline:none;
+  transition:border .2s var(--ease),box-shadow .2s var(--ease);
+}
+select:focus,input:focus{border-color:var(--morado);box-shadow:0 0 0 3px rgba(217,184,232,.25)}
+.pill{font-size:12px;color:var(--texto-2);background:var(--gris-claro);padding:6px 12px;border-radius:999px}
+/* ---------- KPI CARDS ---------- */
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:18px}
+.kpi-grid.g5{grid-template-columns:repeat(5,1fr)}
+.kpi{
+  background:var(--blanco);border:1px solid var(--borde);border-radius:var(--r);
+  padding:18px;box-shadow:var(--shadow-sm);
+  transition:transform .25s var(--ease),box-shadow .25s var(--ease);
+  animation:cardIn .35s var(--ease) both;
+}
+.kpi:hover{transform:scale(1.02);box-shadow:var(--shadow-md)}
+@keyframes cardIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.kpi .lbl{font-size:12px;color:var(--texto-2);font-weight:600;display:flex;gap:7px;align-items:center;margin-bottom:10px}
+.kpi .val{font-size:27px;font-weight:750;letter-spacing:-.5px}
+.kpi .sub{font-size:11px;color:var(--texto-2);margin-top:4px}
+.kpi.accent-rosa{background:linear-gradient(135deg,#fff, #fff6f7);border-color:#f6cdd2}
+.kpi.accent-verde{background:linear-gradient(135deg,#fff,#f4fbf4);border-color:#cfe9d0}
+.kpi.accent-morado{background:linear-gradient(135deg,#fff,#faf5fd);border-color:#e7d3f1}
+.kpi.accent-info{background:linear-gradient(135deg,#fff,#f3f9fe);border-color:#cfe5f7}
+.section-h{font-size:15px;font-weight:700;margin:26px 0 12px;display:flex;gap:8px;align-items:center}
+/* ---------- TABLES ---------- */
+.card{background:var(--blanco);border:1px solid var(--borde);border-radius:var(--r);box-shadow:var(--shadow-sm);overflow:hidden;margin-bottom:18px}
+.card-h{padding:14px 18px;font-size:14px;font-weight:700;border-bottom:1px solid var(--borde);display:flex;justify-content:space-between;align-items:center}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{padding:11px 16px;text-align:left;border-bottom:1px solid var(--borde)}
+th{font-size:11px;text-transform:uppercase;letter-spacing:.4px;color:var(--texto-2);font-weight:700;background:var(--gris-claro)}
+tbody tr{transition:background .15s var(--ease)}
+tbody tr:hover{background:var(--rosa-soft)}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+tr:last-child td{border-bottom:none}
+.tot-row td{font-weight:750;background:var(--gris-claro)}
+.chip{display:inline-block;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:650;background:var(--gris-claro);color:var(--texto-2)}
+.inact{font-size:9px;background:#ececef;color:#9a9aa0;padding:1px 6px;border-radius:999px;font-weight:700;text-transform:uppercase;letter-spacing:.3px}
+.chip-valeria{background:#FADADD;color:#9c2b46}
+.chip-rebeca{background:#FFE0B2;color:#9a5b00}
+.chip-fabiana{background:#FFF3C4;color:#8a6d00}
+.chip-viviana{background:#B5D8F5;color:#2a5e85}
+.chip-lucero{background:#C8E6C9;color:#2e6b31}
+.chip-yasmin{background:#D9B8E8;color:#6a3a86}
+.chip-ok{background:var(--verde);color:#2e6b31}
+.chip-no{background:#ffe0e0;color:#b23b3b}
+/* bars */
+.bar-wrap{background:var(--gris-claro);border-radius:999px;height:8px;overflow:hidden;min-width:80px}
+.bar{height:100%;border-radius:999px;background:linear-gradient(90deg,var(--morado),var(--rosa));transition:width .6s var(--ease)}
+/* leaderboard */
+.lb-table td:first-child{font-weight:600;position:sticky;left:0;background:var(--blanco)}
+.lb-table tbody tr:hover td:first-child{background:var(--rosa-soft)}
+.lb-table th:first-child{position:sticky;left:0;z-index:2}
+.lb-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;max-width:100%}
+/* tabla de setters: muchas columnas -> scroll horizontal dentro de la tarjeta */
+#tblSetterInputs{min-width:880px}
+#tblSetterInputs th,#tblSetterInputs td{white-space:nowrap;padding-left:12px;padding-right:12px}
+/* tablas de leads (Closers / CRM Agendas): todas las columnas con scroll horizontal */
+#tblCloserLeads,#tblAgendas{min-width:2600px}
+#tblCloserLeads th,#tblCloserLeads td,#tblAgendas th,#tblAgendas td{white-space:nowrap}
+#tblCloserLeads td.ctx,#tblAgendas td.ctx{max-width:240px;overflow:hidden;text-overflow:ellipsis;cursor:help}
+#tblCloserLeads a,#tblAgendas a{color:#2a5e85;text-decoration:none;font-weight:600}
+#tblCloserLeads a:hover,#tblAgendas a:hover{text-decoration:underline}
+.good{color:#2e6b31;font-weight:650}
+.bad{color:#b23b3b;font-weight:650}
+.placeholder{padding:50px;text-align:center;color:var(--texto-2)}
+.placeholder .big{font-size:38px;margin-bottom:12px}
+.bars-chart{display:flex;align-items:flex-end;gap:10px;height:160px;padding:18px}
+.bars-chart .b{flex:1;background:linear-gradient(180deg,var(--morado),var(--rosa));border-radius:8px 8px 0 0;position:relative;transition:height .6s var(--ease);min-height:4px}
+.bars-chart .b span{position:absolute;top:-18px;left:0;right:0;text-align:center;font-size:10px;color:var(--texto-2);font-weight:600}
+.bars-chart .b small{position:absolute;bottom:-20px;left:0;right:0;text-align:center;font-size:10px;color:var(--texto-2)}
+.badge-phase{font-size:11px;font-weight:700;background:var(--advertencia);color:#7a4d00;padding:4px 10px;border-radius:999px}
+/* ---------- BOTONES ---------- */
+.btn{font-family:inherit;border:none;cursor:pointer;font-weight:700;font-size:13px;border-radius:11px;padding:9px 16px;transition:transform .18s var(--ease),box-shadow .18s var(--ease),filter .18s var(--ease)}
+.btn-primary{background:linear-gradient(135deg,var(--morado),var(--rosa));color:var(--negro)}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:var(--shadow-md);filter:saturate(1.1)}
+.btn-add{background:var(--negro);color:#fff;padding:7px 14px;font-size:12px;border-radius:999px}
+.btn-add:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(0,0,0,.18)}
+.btn-ghost{background:var(--gris-claro);color:var(--texto-2)}
+.btn-ghost:hover{background:#ececef}
+.btn-danger{background:#ffe0e0;color:#b23b3b}
+.btn-danger:hover{background:#ffd0d0}
+.icon-btn{background:none;border:none;cursor:pointer;font-size:14px;padding:4px 7px;border-radius:8px;opacity:.55;transition:opacity .15s,background .15s}
+.icon-btn:hover{opacity:1;background:var(--gris-claro)}
+td.act{text-align:center;width:42px}
+/* ---------- DRAWER ---------- */
+#overlay{position:fixed;inset:0;background:rgba(29,29,31,.32);backdrop-filter:blur(2px);opacity:0;pointer-events:none;transition:opacity .28s var(--ease);z-index:90}
+#overlay.open{opacity:1;pointer-events:auto}
+#drawer{position:fixed;top:0;right:0;height:100vh;width:430px;max-width:92vw;background:var(--blanco);box-shadow:var(--shadow-lg);
+  transform:translateX(105%);transition:transform .3s var(--ease);z-index:100;display:flex;flex-direction:column}
+#drawer.open{transform:translateX(0)}
+.drawer-h{padding:20px 22px;border-bottom:1px solid var(--borde);display:flex;justify-content:space-between;align-items:center}
+.drawer-h h3{font-size:17px;font-weight:750}
+.drawer-x{background:var(--gris-claro);border:none;width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:16px;color:var(--texto-2);transition:background .18s}
+.drawer-x:hover{background:#e7e7ec}
+.drawer-body{padding:22px;overflow-y:auto;overflow-x:hidden;flex:1}
+/* modal de solo-lectura para contexto */
+#textOverlay{position:fixed;inset:0;background:rgba(29,29,31,.4);backdrop-filter:blur(2px);display:none;z-index:200}
+#textModal{position:fixed;z-index:201;display:none;top:50%;left:50%;transform:translate(-50%,-50%);width:580px;max-width:92vw;max-height:80vh;background:var(--blanco);border-radius:16px;box-shadow:var(--shadow-lg);flex-direction:column}
+#textOverlay.open{display:block}
+#textModal.open{display:flex}
+#valOverlay{position:fixed;inset:0;background:rgba(29,29,31,.5);backdrop-filter:blur(2px);display:none;z-index:210}
+#valModal{position:fixed;z-index:211;display:none;top:50%;left:50%;transform:translate(-50%,-50%);width:420px;max-width:92vw;background:var(--blanco);border-radius:16px;box-shadow:var(--shadow-lg);padding:24px 26px}
+#valModal.open,#valOverlay.open{display:block}
+#valModal h3{margin:0 0 6px;font-size:17px;color:var(--negro)}
+#valModal p{margin:0;color:var(--texto-2);font-size:13.5px}
+#valModal ul{margin:12px 0 20px;padding-left:20px;color:var(--negro);font-size:14px}
+#valModal li{margin:5px 0;font-weight:600}
+#valModal .btn-entiendo{width:100%;padding:12px;border:none;border-radius:11px;background:#C0507A;color:#fff;font-weight:700;font-size:15px;cursor:pointer}
+.text-modal-h{padding:16px 20px;border-bottom:1px solid var(--borde);display:flex;justify-content:space-between;align-items:center;font-size:14px;font-weight:700}
+#textModalBody{padding:20px;overflow-y:auto;white-space:pre-wrap;font-size:13px;line-height:1.6;color:var(--negro)}
+.ctx{cursor:pointer}
+.drawer-foot{padding:16px 22px;border-top:1px solid var(--borde);display:flex;gap:10px;justify-content:flex-end}
+.field{margin-bottom:15px}
+.field label{display:block;font-size:12px;font-weight:650;color:var(--texto-2);margin-bottom:6px}
+.field input,.field select{width:100%;min-width:0}
+.field textarea{width:100%;min-width:0;font-family:inherit;font-size:13px;padding:8px 12px;border:1px solid var(--borde);border-radius:10px;min-height:64px;resize:vertical;outline:none}
+.field textarea:focus{border-color:var(--morado);box-shadow:0 0 0 3px rgba(217,184,232,.25)}
+.field-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px}
+.grp{border:1px solid var(--borde);border-radius:12px;padding:14px;margin-bottom:15px}
+.grp .grp-t{font-size:13px;font-weight:750;margin-bottom:10px}
+.grp-4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.grp-4 label{font-size:11px;text-align:center;color:var(--texto-2);font-weight:600;display:block;margin-bottom:4px}
+.grp-4 input{width:100%;min-width:0;text-align:center;padding:7px 4px}
+.grp-3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.grp-3 label{font-size:11px;text-align:center;color:var(--texto-2);font-weight:600;display:block;margin-bottom:4px}
+.grp-3 input{width:100%;min-width:0;text-align:center;padding:7px 4px}
+@media(max-width:900px){.kpi-grid,.kpi-grid.g5{grid-template-columns:repeat(2,1fr)}#sidebar{width:62px}.brand .title,.brand .sub,.navitem span.txt,.sidebar-foot{display:none}.navitem{justify-content:center}}
+</style>
+</head>
+<body>
+
+<!-- ============ SIDEBAR ============ -->
+<nav id="sidebar">
+  <div class="brand">
+    <div class="logo" id="brandLogo"></div>
+    <div>
+      <div class="title" id="brandTitle">Tommy Lalane</div>
+      <div class="sub" id="brandSub">CRM de ventas</div>
+    </div>
+  </div>
+  <button class="navitem active" data-view="home"><span class="ico">📊</span><span class="txt">Dashboard</span></button>
+  <button class="navitem" data-view="leaderboards"><span class="ico">🏆</span><span class="txt">Métricas</span></button>
+  <button class="navitem" data-view="closers"><span class="ico">👤</span><span class="txt">Closers</span></button>
+  <button class="navitem" data-view="agendas"><span class="ico">📋</span><span class="txt">CRM Agendas</span></button>
+  <button class="navitem" data-view="setters"><span class="ico">📞</span><span class="txt">Setters</span></button>
+  <button class="navitem" data-view="pagos"><span class="ico">💰</span><span class="txt">Registro de Pagos</span></button>
+  <button class="navitem" data-view="cuotas"><span class="ico">💸</span><span class="txt">Cuotas</span></button>
+  <button class="navitem" data-view="config"><span class="ico">⚙️</span><span class="txt">Config</span></button>
+  <div class="sidebar-foot" id="brandFoot">Datos en vivo</div>
+</nav>
+
+<!-- ============ MAIN ============ -->
+<div id="main">
+  <div class="topbar">
+    <h1 id="viewTitle">📊 Dashboard</h1>
+    <div class="who"><span id="brandWho">Admin</span><div class="avatar" id="brandAvatar">S</div></div>
+  </div>
+
+  <!-- ===== HOME / DASHBOARD ===== -->
+  <section class="view" id="view-home">
+    <div class="periodbar">
+      <label>🗓 Período</label>
+      <select id="periodSelect"></select>
+      <label>Desde</label><input type="date" id="dDesde">
+      <label>Hasta</label><input type="date" id="dHasta">
+      <span class="pill" id="periodPill"></span>
+    </div>
+
+    <div class="section-h">💵 Financiero</div>
+    <div class="kpi-grid g5" id="kpiFin"></div>
+    <div class="section-h">⚙️ Operativo</div>
+    <div class="kpi-grid" id="kpiOps"></div>
+    <div class="section-h">🎯 Funnel</div>
+    <div class="kpi-grid g5" id="kpiFunnel"></div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px">
+      <div class="card">
+        <div class="card-h">🏆 Top Closers <span class="pill">período</span></div>
+        <table id="tblTopClosers"></table>
+      </div>
+      <div class="card">
+        <div class="card-h">📞 Top Setters <span class="pill">período</span></div>
+        <table id="tblTopSetters"></table>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1.3fr;gap:18px">
+      <div class="card">
+        <div class="card-h">📥 Leads por Fuente</div>
+        <table id="tblFuentes"></table>
+      </div>
+      <div class="card">
+        <div class="card-h">📈 Cash-in últimas 8 semanas</div>
+        <div class="bars-chart" id="chartCash"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== LEADERBOARDS ===== -->
+  <section class="view hidden" id="view-leaderboards">
+    <div class="periodbar">
+      <label>🗓 Período</label>
+      <select id="periodSelect2"></select>
+      <span class="pill" id="periodPill2"></span>
+      <span style="margin-left:auto" class="pill">17 KPIs · 4 closers</span>
+    </div>
+    <div class="card lb-wrap">
+      <div class="card-h"><span>🏆 Métricas de Closers</span><button class="btn btn-add" onclick="openMinsForm()">✏️ Editar mínimos esperados</button></div>
+      <table class="lb-table" id="tblLeaderboard"></table>
+    </div>
+  </section>
+
+  <!-- ===== CLOSERS ===== -->
+  <section class="view hidden" id="view-closers">
+    <div class="periodbar"><label>🗓 Período</label><select id="periodSelect3"></select><span class="pill" id="periodPill3"></span></div>
+    <div class="kpi-grid" id="closerCards" style="margin-bottom:22px"></div>
+    <div class="card">
+      <div class="card-h"><span>👤 Leads <select id="closerPick" style="font-size:13px"></select></span><button class="btn btn-add" onclick="openLeadForm()">+ Nuevo lead</button></div>
+      <div class="lb-wrap"><table id="tblCloserLeads"></table></div>
+    </div>
+  </section>
+
+  <!-- ===== CRM AGENDAS (todos los leads, cronológico) ===== -->
+  <section class="view hidden" id="view-agendas">
+    <div class="periodbar"><label>🗓 Período</label><select id="periodSelect6"></select><span class="pill" id="periodPill6"></span><span style="margin-left:auto" class="pill" id="agendasCount"></span></div>
+    <div class="card">
+      <div class="card-h"><span>📋 CRM Agendas <span class="pill">todos los closers · por fecha de llamada</span></span><button class="btn btn-add" onclick="openLeadForm()">+ Nuevo lead</button></div>
+      <div class="lb-wrap"><table id="tblAgendas"></table></div>
+    </div>
+  </section>
+
+  <!-- ===== SETTERS ===== -->
+  <section class="view hidden" id="view-setters">
+    <div class="periodbar"><label>🗓 Período</label><select id="periodSelect4"></select><span class="pill" id="periodPill4"></span></div>
+    <div class="kpi-grid" id="setterCards" style="grid-template-columns:repeat(2,1fr);margin-bottom:22px"></div>
+    <div class="card">
+      <div class="card-h"><span>📞 Input diario <select id="setterPick" style="font-size:13px"></select></span><button class="btn btn-add" onclick="openSetterForm()">+ Nuevo input</button></div>
+      <div class="lb-wrap"><table id="tblSetterInputs"></table></div>
+    </div>
+  </section>
+
+  <!-- ===== PAGOS ===== -->
+  <section class="view hidden" id="view-pagos">
+    <div class="periodbar"><label>🗓 Período</label><select id="periodSelect5"></select><span class="pill" id="periodPill5"></span><span style="margin-left:auto" class="pill" id="pagosTotal"></span></div>
+    <div class="card">
+      <div class="card-h"><span>💰 Registro de Pagos <span class="badge-phase">FUENTE DE VERDAD</span></span><button class="btn btn-add" onclick="openPagoForm()">+ Nuevo pago</button></div>
+      <div class="lb-wrap"><table id="tblPagos"></table></div>
+    </div>
+  </section>
+
+  <!-- ===== CUOTAS ===== -->
+  <section class="view hidden" id="view-cuotas">
+    <div style="display:grid;grid-template-columns:2.2fr 1fr;gap:18px">
+      <div class="card">
+        <div class="card-h"><span>💸 Cuotas pendientes</span><button class="btn btn-add" onclick="openCuotaForm()">+ Nueva cuota</button></div>
+        <div class="lb-wrap"><table id="tblCuotas"></table></div>
+      </div>
+      <div class="card">
+        <div class="card-h">📊 Resumen de cobro</div>
+        <div id="cuotasKpis" style="padding:8px"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== CONFIG ===== -->
+  <section class="view hidden" id="view-config">
+    <div class="card" style="max-width:680px">
+      <div class="card-h">⚙️ Configuración</div>
+      <div style="padding:18px;display:grid;gap:18px">
+        <div><div class="section-h" style="margin:0 0 8px">💱 Tipo de cambio (ARS por USD)</div><input type="number" id="cfgTC" style="width:160px">
+          <div style="font-size:12px;color:var(--texto-2);margin-top:6px">Tasa fija. Todo pago en pesos argentinos se convierte y se muestra en dólares en el Dashboard con este valor.</div></div>
+        <div><div class="section-h" style="margin:0 0 8px">💸 Gasto en Ads por mes (USD)</div>
+          <div style="font-size:12px;color:var(--texto-2);margin-bottom:10px">Cargá el gasto de cada mes. El Dashboard suma los meses que caen dentro del período seleccionado para calcular el ROAS.</div>
+          <div id="adsEditor"></div>
+          <div style="display:flex;gap:8px;margin-top:10px;align-items:center;flex-wrap:wrap">
+            <input type="month" id="adsMes"><input type="number" id="adsMonto" placeholder="USD" style="width:120px">
+            <button class="btn btn-add" onclick="addAdsSpend()">+ Agregar / actualizar mes</button>
+          </div>
+        </div>
+        <div><div class="section-h" style="margin:0 0 8px">👥 Equipo y productos</div>
+          <div style="font-size:12px;color:var(--texto-2);margin-bottom:12px">Agregá closers, setters y productos — se reflejan en todas las pestañas y formularios. El ⏸ marca inactivo (conserva el histórico pero lo saca de los formularios de asignación); ▶ lo reactiva.</div>
+          <div id="teamEditor"></div>
+        </div>
+        <button onclick="applyConfig()" style="background:linear-gradient(135deg,var(--morado),var(--rosa));border:none;padding:11px 20px;border-radius:12px;font-weight:700;font-size:14px;cursor:pointer;width:fit-content">Aplicar cambios</button>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<!-- ============ DRAWER (formularios de captura) ============ -->
+<div id="overlay" onclick="closeDrawer()"></div>
+<aside id="drawer">
+  <div class="drawer-h"><h3 id="drawerTitle"></h3><button class="drawer-x" onclick="closeDrawer()">✕</button></div>
+  <div class="drawer-body" id="drawerBody"></div>
+  <div class="drawer-foot">
+    <button class="btn btn-danger" id="drawerDelete" style="margin-right:auto;display:none">Eliminar</button>
+    <button class="btn btn-ghost" onclick="closeDrawer()">Cancelar</button>
+    <button class="btn btn-primary" id="drawerSave">Guardar</button>
+  </div>
+</aside>
+
+<!-- Modal de solo-lectura para leer contexto setter/closer sin editar -->
+<div id="textOverlay" onclick="closeText()"></div>
+<div id="textModal">
+  <div class="text-modal-h"><span id="textModalTitle">Contexto</span><button class="drawer-x" onclick="closeText()">✕</button></div>
+  <div id="textModalBody"></div>
+</div>
+
+<!-- Pop-up de validación: campos importantes obligatorios al guardar un lead -->
+<div id="valOverlay" onclick="closeVal()"></div>
+<div id="valModal">
+  <h3>⚠️ Faltan campos importantes</h3>
+  <p>No podés terminar de guardar el lead sin completar:</p>
+  <ul id="valList"></ul>
+  <button class="btn-entiendo" onclick="closeVal()">Entiendo, volver a completar</button>
+</div>
+
+<!-- Supabase (backend en la nube, tiempo real). Si dejás las credenciales vacías, la app corre en modo local. -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>window.CRM_SEED=null;</script>
+<script>
+/* ============================================================
+   CONFIG SUPABASE  ←←← PEGÁ ACÁ LOS DATOS DE TU PROYECTO
+   (Supabase → Project Settings → API)
+   Si los dejás vacíos, la app funciona en MODO LOCAL (este navegador).
+   ============================================================ */
+const SUPABASE_URL = "https://utbqsdqqwiprvlozhxae.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_NRXSRknDl2auXj2w0Cf6dQ_9yNKJep3";
+const sb = (SUPABASE_URL && window.supabase)
+  ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+  : null;
+
+/* ============================================================
+   DATA LAYER
+   Modo nube (sb): datos desde Supabase, en tiempo real.
+   Modo local: SEED histórico (crm_seed.js) + localStorage.
+   ============================================================ */
+/* ============ CONFIGURACIÓN DE MARCA ============ */
+const MARCA     = "Tommy Lalane";
+const MARCA_SUB = "CRM de ventas";
+const LOGO      = '<svg viewBox="0 0 24 24" width="23" height="23" fill="none" stroke="#fff" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><path d="M5.5 8 H18.5 L17.6 19.5 a1 1 0 0 1-1 .9 H7.4 a1 1 0 0 1-1-.9 Z"/><path d="M8.5 8 V6.3 a3.5 3.5 0 0 1 7 0 V8"/></svg>';
+const COLOR     = "#F59E0B"; // amarillo ecommerce
+function _hexA(hex,a){try{const n=hex.replace("#","");const r=parseInt(n.substr(0,2),16),g=parseInt(n.substr(2,2),16),b=parseInt(n.substr(4,2),16);return "rgba("+r+","+g+","+b+","+a+")";}catch(e){return hex;}}
+function applyBrand(){
+  const R=document.documentElement.style;
+  R.setProperty("--morado",COLOR); R.setProperty("--rosa",_hexA(COLOR,.32)); R.setProperty("--rosa-soft",_hexA(COLOR,.10));
+  const s=(id,v)=>{const e=document.getElementById(id); if(e)e.textContent=v;};
+  s("brandTitle",MARCA); s("brandSub",MARCA_SUB); s("brandWho","Admin"); s("brandAvatar",(MARCA[0]||"C").toUpperCase());
+  const _lg=document.getElementById("brandLogo"); if(_lg){ if(/^\s*</.test(LOGO)) _lg.innerHTML=LOGO; else _lg.textContent=LOGO; }
+  document.title=MARCA;
+}
+applyBrand();
+let CLOSERS = [];
+let SETTERS = [];
+const TEAM_CLOSERS = [];
+const TEAM_SETTERS = [];
+const PRICE_BASE = {};
+let PRICE = {...PRICE_BASE};
+let PRODUCTOS = Object.keys(PRICE);
+const CLOSED = ["Fee","Adentro en llamada","Adentro en seguimiento"]; // situaciones que cuentan como cierre
+
+// tipoCambio = ARS (pesos argentinos) por USD. Fijo editable en Config. Todo pago en pesos se convierte a USD con esta tasa.
+const CONFIG = { tipoCambio:1000, gastosAds:[], lbMins:{}, closers:[], setters:[], productos:[], inactivos:[] }; // productos:[{nombre,precio}]; closers/setters/inactivos: nombres agregados desde Config
+
+// ---- LEADS / AGENDAS (la espina dorsal) ----
+// presento Sí/No, califica Sí/No, situacion, pagoLlamada, pagoSeguimiento
+function L(fecha,nombre,closer,setter,presento,califica,situacion,pagoLl,pagoSeg,producto,fuente){
+  return {fecha,nombre,tel:"+506 8"+Math.floor(1000000+Math.random()*8999999),closer,setter,presento,califica,situacion,pagoLl,pagoSeg,producto:producto||"",fuente:fuente||"Ads"};
+}
+const LEADS = [];
+
+// ---- REGISTRO DE PAGOS (fuente de verdad financiera) ----
+function P(fecha,producto,cliente,usd,colones,closer,setter,concepto,metodo){
+  return {fecha,producto,cliente,tel:"+506 8"+Math.floor(1000000+Math.random()*8999999),usd,colones,closer,setter,concepto,metodo,notas:""};
+}
+const PAGOS = [];
+
+// ---- SETTER INPUTS (input diario) ----
+// Categorías: Conversaciones / Comentarios enviados / Llamadas agendadas
+// Conversaciones y Comentarios se dividen por fuente: Ads, Historias, Posts, Follow-ups
+// Llamadas agendadas se dividen por: Historias, Posts, Follow-ups
+function S(fecha,setter, cAds,cHist,cPost,cFup, mAds,mHist,mPost,mFup, lHist,lPost,lFup){
+  return {fecha,setter,
+    conv:{ads:cAds,hist:cHist,post:cPost,fup:cFup},
+    com:{ads:mAds,hist:mHist,post:mPost,fup:mFup},
+    call:{hist:lHist,post:lPost,fup:lFup}};
+}
+const SETTER_INPUTS = [];
+
+// ---- CUOTAS ----
+// montoTotal = valor del plan; abonado = pagado a la fecha; falta = montoTotal - abonado
+function C(programa,alumno,montoTotal,abonado,ultimoCobro,siguienteCobro,closer,situacion,cuota){
+  return {programa,alumno,montoTotal,abonado,ultimoCobro,siguienteCobro,closer,situacion,cuota};
+}
+const CUOTAS = [];
+
+/* ---- Inyectar SEED histórico si está disponible ---- */
+function applySeed(seed){
+  const repl=(arr,data)=>{if(Array.isArray(data)){arr.length=0;data.forEach(x=>arr.push(x));}};
+  repl(LEADS,seed.leads);repl(PAGOS,seed.pagos);repl(SETTER_INPUTS,seed.setters);repl(CUOTAS,seed.cuotas);
+  if(seed.config)Object.assign(CONFIG,seed.config);
+}
+if(window.CRM_SEED){ applySeed(window.CRM_SEED); }
+
+/* ---- Staff que ya no trabaja (se conserva su data, se marca como inactivo) ---- */
+const INACTIVOS_BASE = [];
+let INACTIVOS = new Set(INACTIVOS_BASE);
+const inactivoTag = name => INACTIVOS.has(name) ? ' <span class="inact">inactivo</span>' : '';
+const inactivoTxt = name => INACTIVOS.has(name) ? name+" (inactivo)" : name;
+const closersActivos = () => CLOSERS.filter(c=>!INACTIVOS.has(c)); // seleccionables para agendar leads nuevos
+
+/* ---- Derivar listas de closers/setters desde los datos (incluye legacy) ---- */
+function rebuildCatalog(){
+  // Productos: base + los agregados desde Config
+  PRICE = {...PRICE_BASE};
+  (CONFIG.productos||[]).forEach(p=>{ if(p&&p.nombre) PRICE[p.nombre]=+p.precio||0; });
+  PRODUCTOS = Object.keys(PRICE);
+  // Inactivos: base + los marcados desde Config
+  INACTIVOS = new Set([...INACTIVOS_BASE, ...(CONFIG.inactivos||[])]);
+}
+function deriveTeam(){
+  const cset=new Set([...TEAM_CLOSERS, ...(CONFIG.closers||[])]);
+  const sset=new Set([...TEAM_SETTERS, ...(CONFIG.setters||[])]);
+  LEADS.forEach(l=>{if(l.closer&&l.closer.trim())cset.add(l.closer.trim()); if(l.setter&&l.setter.trim())sset.add(l.setter.trim());});
+  SETTER_INPUTS.forEach(s=>{if(s.setter&&s.setter.trim())sset.add(s.setter.trim());});
+  CLOSERS=[...cset]; SETTERS=[...sset];
+  rebuildCatalog();
+}
+deriveTeam();
+
+/* ============================================================
+   PERÍODO — presets que calculan {desde,hasta}
+   ============================================================ */
+const PRESETS = ["Hoy","Ayer","Esta semana","Semana pasada","Últimos 7 días","Este mes","Mes pasado","Últimos 30 días","Últimos 2 meses","Este trimestre","Este año","Año pasado","Personalizado"];
+function iso(d){return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");} // fecha LOCAL (no UTC, evita corrimiento de 1 día en el período)
+function startOfWeek(d){const x=new Date(d);const day=(x.getDay()+6)%7;x.setDate(x.getDate()-day);x.setHours(0,0,0,0);return x;}
+function periodRange(preset){
+  const t=new Date(); t.setHours(0,0,0,0);
+  const y=t.getFullYear(), m=t.getMonth();
+  let desde,hasta;
+  switch(preset){
+    case "Hoy": desde=new Date(t);hasta=new Date(t);break;
+    case "Ayer": desde=new Date(t);desde.setDate(t.getDate()-1);hasta=new Date(desde);break;
+    case "Esta semana": desde=startOfWeek(t);hasta=new Date(desde);hasta.setDate(desde.getDate()+6);break;
+    case "Semana pasada": hasta=startOfWeek(t);hasta.setDate(hasta.getDate()-1);desde=new Date(hasta);desde.setDate(hasta.getDate()-6);break;
+    case "Últimos 7 días": hasta=new Date(t);desde=new Date(t);desde.setDate(t.getDate()-6);break;
+    case "Este mes": desde=new Date(y,m,1);hasta=new Date(y,m+1,0);break;
+    case "Mes pasado": desde=new Date(y,m-1,1);hasta=new Date(y,m,0);break;
+    case "Últimos 30 días": hasta=new Date(t);desde=new Date(t);desde.setDate(t.getDate()-29);break;
+    case "Últimos 2 meses": hasta=new Date(t);desde=new Date(t);desde.setDate(t.getDate()-60);break;
+    case "Este trimestre": {const q=Math.floor(m/3)*3;desde=new Date(y,q,1);hasta=new Date(y,q+3,0);break;}
+    case "Este año": desde=new Date(y,0,1);hasta=new Date(y,11,31);break;
+    case "Año pasado": desde=new Date(y-1,0,1);hasta=new Date(y-1,11,31);break;
+    default: return null; // Personalizado
+  }
+  return {desde:iso(desde),hasta:iso(hasta)};
+}
+const STATE={ desde:null, hasta:null, preset:"Este año" };
+
+function inRange(fecha){ return fecha>=STATE.desde && fecha<=STATE.hasta; }
+
+/* ============================================================
+   KPI ENGINE
+   ============================================================ */
+const usd = p => (p.usd||0) + (p.colones||0)/CONFIG.tipoCambio;
+// ---- CRUCE lead ↔ pago por nombre (FINANZAS es la fuente de verdad) ----
+function normName(s){return (s||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^a-z\s]/g," ").replace(/\s+/g," ").trim();}
+let PAID_SET=null;
+function buildPaidSet(){ PAID_SET=new Set(); PAGOS.forEach(p=>{const n=normName(p.cliente); if(!n)return; PAID_SET.add(n); const w=n.split(" "); if(w.length>=2)PAID_SET.add(w[0]+" "+w[1]);}); }
+function pagoFinanzas(l){ if(!PAID_SET)buildPaidSet(); const n=normName(l.nombre); if(!n)return false; if(PAID_SET.has(n))return true; const w=n.split(" "); return w.length>=2 && PAID_SET.has(w[0]+" "+w[1]); }
+// un lead cerró si lo dice la situación del CRM O si aparece pagando en finanzas (madre)
+const isClosed = l => CLOSED.includes(l.situacion) || pagoFinanzas(l);
+const valorOf = l => (l.valor!=null && l.valor>0) ? l.valor : (PRICE[l.producto]||0);
+// conceptos que marcan una VENTA (primer pago): Fee / 1ra Cuota / PIF
+const VENTA_CONCEPTOS = ["Fee","1ra Cuota","PIF"];
+const esVenta = p => VENTA_CONCEPTOS.includes((p.concepto||"").trim());
+// precio del programa desde el texto del producto 
+const priceOf = p => { const m=/\$?\s*(\d{3,4})/.exec(p.producto||""); return m?+m[1]:(PRICE[p.producto]||0); };
+// gasto en ads del período: suma los meses cargados que caen dentro del rango
+function monthRange(m){const [y,mo]=m.split("-").map(Number);return [iso(new Date(y,mo-1,1)),iso(new Date(y,mo,0))];}
+function gastoAdsPeriodo(){
+  return (CONFIG.gastosAds||[]).reduce((a,g)=>{const [s,e]=monthRange(g.mes);return a+((s<=STATE.hasta&&e>=STATE.desde)?(+g.monto||0):0);},0);
+}
+function leadsIn(){return LEADS.filter(l=>inRange(l.fecha));}
+function pagosIn(){return PAGOS.filter(p=>inRange(p.fecha));}
+function settersIn(){return SETTER_INPUTS.filter(s=>inRange(s.fecha));}
+
+function dashKPIs(){
+  const lis=leadsIn(), pis=pagosIn(), sis=settersIn();
+  const cash = pis.reduce((a,p)=>a+usd(p),0);
+  const closedLeads = lis.filter(isClosed);
+  // Finanzas desde PAGOS: ventas = filas Fee/1ra/PIF (1 por venta)
+  const ventas = pis.filter(esVenta);
+  const ventasCount = ventas.length;
+  const cashVentas = ventas.reduce((a,p)=>a+usd(p),0);
+  const revenue = ventas.reduce((a,p)=>a+priceOf(p),0);   // facturado (opción B: por venta)
+  // Métricas de equipo consistentes con la hoja de Métricas: por closer, no pooled global
+  const closerData = CLOSERS.map(c=>closerKPIs(c));
+  const avgAct=(key,den)=>{const a=closerData.filter(k=>(k[den]||0)>0); return a.length? a.reduce((s,k)=>s+k[key],0)/a.length : 0;};
+  const poolAov=(numK,denK)=>{const num=closerData.reduce((s,k)=>s+(k[numK]||0),0), den=closerData.reduce((s,k)=>s+(k[denK]||0),0); return den? num/den : 0;};
+  const aov = poolAov('cashDia1','ventasDia1'); // AOV Día 1 pooled (total cash ÷ total ventas) — igual que Métricas
+  const gasto = gastoAdsPeriodo();
+  const roas = gasto? revenue/gasto : 0;
+  const roasCash = gasto? cash/gasto : 0;   // ROAS sobre cash collected
+  const cierres = closedLeads.length;
+  const shows = lis.filter(l=>l.presento==="Sí").length;
+  // Close rate del equipo = promedio de la tasa de cierre EFECTIVA de los closers CON actividad (no arrastra inactivos)
+  const closeRate = avgAct('cierreEfectiva','agendasCalifPres');
+  const convTot = sis.reduce((a,s)=>a+s.conv.ads+s.conv.hist+s.conv.post+s.conv.fup,0);
+  const comTot  = sis.reduce((a,s)=>a+s.com.ads+s.com.hist+s.com.post+s.com.fup,0);
+  // Llamadas agendadas reportadas por setters (por fuente) y tasa agenda/calendario
+  const callsSetterTot = sis.reduce((a,s)=>a+(s.call.ads||0)+(s.call.hist||0)+(s.call.post||0)+(s.call.fup||0),0);
+  const tasaAgendaCal = comTot? callsSetterTot/comTot : 0;
+  const callsAg = lis.length;   // agendas reales del período (cuadra con las hojas de closers)
+  const leadsTot = convTot;
+  // Show up del equipo = promedio del show up de los closers CON llamadas agendadas (no arrastra inactivos)
+  const agendadas = lis.filter(l=>l.presento==="Sí"||l.presento==="No").length;
+  const showUp = avgAct('showUp','agendadas');
+  const calif = lis.filter(l=>l.califica==="Sí").length;
+  const califTot = lis.filter(l=>l.califica!=="").length;
+  const pctCalif = califTot? calif/califTot : 0;
+  const pctCashRev = revenue? cash/revenue : 0;   // % de lo facturado que ya se cobró
+  return {cash,revenue,gasto,roas,roasCash,cierres,shows,closeRate,aov,ventasCount,leadsTot,comTot,callsAg,callsSetterTot,tasaAgendaCal,showUp,pctCalif,pctCashRev};
+}
+
+function closerKPIs(closer){
+  const lis = leadsIn().filter(l=>l.closer===closer);
+  const pis = pagosIn().filter(p=>p.closer===closer);
+  const presentadas = lis.filter(l=>l.presento==="Sí");
+  const califPres = presentadas.filter(l=>l.califica==="Sí");
+  const closed = lis.filter(isClosed);
+  const agendasTot = lis.length;
+  const cierres = closed.length;
+  const agendadas = lis.filter(l=>l.presento==="Sí"||l.presento==="No").length;
+  // CASH desde PAGOS del tracker (fuente de verdad), no del valor de los leads
+  const firstP = pis.filter(esVenta);                       // Fee / 1ra Cuota / PIF
+  const cashDia1 = firstP.reduce((a,p)=>a+usd(p),0);
+  const cashSeg  = pis.filter(p=>!esVenta(p)).reduce((a,p)=>a+usd(p),0); // 2da/3er cuota...
+  const cashTotal = pis.reduce((a,p)=>a+usd(p),0);          // = real cobrado por el closer
+  const facturado = closed.reduce((a,l)=>a+valorOf(l),0);   // valor de programa de sus cierres
+  return {
+    agendasTot,
+    agendasPres: presentadas.length,
+    agendasCalifPres: califPres.length,
+    pctCalif: presentadas.length? califPres.length/presentadas.length:0,
+    cierreGeneral: agendasTot? cierres/agendasTot:0,
+    cierreEfectiva: califPres.length? cierres/califPres.length:0,
+    showUp: agendadas? presentadas.length/agendadas:0,
+    aovDia1: firstP.length? cashDia1/firstP.length:0,
+    aovTrato: cierres? facturado/cierres:0,
+    uLlam: closed.filter(l=>l.situacion==="Adentro en llamada").length,
+    uSeg: closed.filter(l=>l.situacion==="Adentro en seguimiento").length,
+    uFee: closed.filter(l=>l.situacion==="Fee").length,
+    uOtro: Math.max(0, cierres - closed.filter(l=>["Adentro en llamada","Adentro en seguimiento","Fee"].includes(l.situacion)).length),
+    uTot: cierres,
+    agendadas,
+    ventasDia1: firstP.length,
+    cashDia1,
+    cashTrato: facturado,
+    cashSeg,
+    cashTotal
+  };
+}
+
+function setterKPIs(setter){
+  const sis=settersIn().filter(s=>s.setter===setter);
+  const lis=leadsIn().filter(l=>l.setter===setter);
+  const sum=(grp,k)=>sis.reduce((a,s)=>a+s[grp][k],0);
+  const convTotal=sum("conv","ads")+sum("conv","hist")+sum("conv","post")+sum("conv","fup");
+  const comTotal=sum("com","ads")+sum("com","hist")+sum("com","post")+sum("com","fup");
+  const callTotal=sum("call","hist")+sum("call","post")+sum("call","fup");
+  return {
+    convAds:sum("conv","ads"),convHist:sum("conv","hist"),convPost:sum("conv","post"),convFup:sum("conv","fup"),
+    comAds:sum("com","ads"),comHist:sum("com","hist"),comPost:sum("com","post"),comFup:sum("com","fup"),
+    callHist:sum("call","hist"),callPost:sum("call","post"),callFup:sum("call","fup"),
+    conversaciones:convTotal, comentarios:comTotal, callsAgendadas:callTotal,
+    callsRealizadas: lis.filter(l=>l.presento==="Sí").length,
+    cierres: lis.filter(isClosed).length
+  };
+}
+
+/* ============================================================
+   FORMATTERS
+   ============================================================ */
+const fUSD = n => "$"+Math.round(n).toLocaleString("en-US");
+const fPct = n => (n*100).toFixed(1)+"%";
+const fX = n => n.toFixed(2)+"x";
+const chipClass = name => "chip chip-"+(name||"").toLowerCase().replace(/[^a-z0-9]/g,"");
+
+/* count-up */
+function countUp(el,target,fmt){
+  const dur=600,start=performance.now();
+  function step(now){
+    const p=Math.min((now-start)/dur,1);
+    const e=1-Math.pow(1-p,3);
+    el.textContent=fmt(target*e);
+    if(p<1)requestAnimationFrame(step);else el.textContent=fmt(target);
+  }
+  requestAnimationFrame(step);
+}
+
+/* ============================================================
+   RENDER — DASHBOARD
+   ============================================================ */
+function kpiCard(lbl,emoji,accent,valId){
+  return `<div class="kpi accent-${accent}"><div class="lbl">${emoji} ${lbl}</div><div class="val" id="${valId}">—</div></div>`;
+}
+function renderDashboard(){
+  const k=dashKPIs();
+  document.getElementById("kpiFin").innerHTML =
+    kpiCard("Cash Collected","💰","verde","k_cash")+
+    kpiCard("Revenue (cierres $)","📈","rosa","k_rev")+
+    kpiCard("% Cash/Revenue","🔗","info","k_cashrev")+
+    kpiCard("Gasto Ads","💸","morado","k_gasto")+
+    kpiCard("ROAS / ROAS Cash CC","🚀","info","k_roas");
+  document.getElementById("kpiOps").innerHTML =
+    kpiCard("Cierres","✅","verde","k_cierres")+
+    kpiCard("Shows","📞","info","k_shows")+
+    kpiCard("Close Rate efectiva","📊","rosa","k_close")+
+    kpiCard("AOV (1er pago)","💵","morado","k_aov");
+  document.getElementById("kpiFunnel").innerHTML =
+    kpiCard("Conversaciones (leads)","📥","rosa","k_leads")+
+    kpiCard("Calls Agendadas","📲","morado","k_callsag")+
+    kpiCard("Tasa agenda / calendario","📆","rosa","k_tasaag")+
+    kpiCard("Show up rate","🎯","verde","k_showup")+
+    kpiCard("% Calificadas","🔥","info","k_calif");
+  countUp(k_cash,k.cash,fUSD);
+  countUp(k_rev,k.revenue,fUSD);
+  countUp(k_cashrev,k.pctCashRev,fPct);
+  if(k.gasto){ countUp(k_gasto,k.gasto,fUSD); k_roas.textContent=fX(k.roas)+" / "+fX(k.roasCash); }
+  else { k_gasto.textContent="—"; k_roas.textContent="—"; } // sin gasto de ads cargado
+  countUp(k_cierres,k.cierres,n=>Math.round(n));
+  countUp(k_shows,k.shows,n=>Math.round(n));
+  countUp(k_close,k.closeRate,fPct);
+  countUp(k_aov,k.aov,fUSD);
+  countUp(k_leads,k.leadsTot,n=>Math.round(n));
+  countUp(k_callsag,k.callsAg,n=>Math.round(n));
+  countUp(k_tasaag,k.tasaAgendaCal,fPct);
+  countUp(k_showup,k.showUp,fPct);
+  countUp(k_calif,k.pctCalif,fPct);
+
+  // Top closers
+  const rows = CLOSERS.map(c=>({c,k:closerKPIs(c)}))
+    .sort((a,b)=>b.k.cashTotal-a.k.cashTotal);
+  document.getElementById("tblTopClosers").innerHTML =
+    `<thead><tr><th>Closer</th><th class="num">Cierres</th><th class="num">Cash</th><th class="num">Close rate</th></tr></thead><tbody>`+
+    rows.map(r=>`<tr><td><span class="${chipClass(r.c)}">${r.c}</span></td><td class="num">${r.k.uTot}</td><td class="num">${fUSD(r.k.cashTotal)}</td><td class="num">${fPct(r.k.cierreGeneral)}</td></tr>`).join("")+`</tbody>`;
+
+  // Top setters
+  const srows = SETTERS.map(s=>({s,k:setterKPIs(s)})).sort((a,b)=>b.k.callsAgendadas-a.k.callsAgendadas);
+  document.getElementById("tblTopSetters").innerHTML =
+    `<thead><tr><th>Setter</th><th class="num">Calls ag.</th><th class="num">Conversaciones</th><th class="num">Cierres atrib.</th></tr></thead><tbody>`+
+    srows.map(r=>`<tr><td><span class="${chipClass(r.s)}">${r.s}</span></td><td class="num">${r.k.callsAgendadas}</td><td class="num">${r.k.conversaciones}</td><td class="num">${r.k.cierres}</td></tr>`).join("")+`</tbody>`;
+
+  // Fuentes
+  // Leads por fuente = total de conversaciones desglosado por fuente (suma de todos los leads)
+  const fuentes={Ads:0,Historias:0,Posts:0,"Follow-ups":0};
+  settersIn().forEach(s=>{fuentes.Ads+=s.conv.ads;fuentes.Historias+=s.conv.hist;fuentes.Posts+=s.conv.post;fuentes["Follow-ups"]+=s.conv.fup;});
+  const fmax=Math.max(1,...Object.values(fuentes));
+  document.getElementById("tblFuentes").innerHTML =
+    `<thead><tr><th>Fuente</th><th class="num">Leads</th><th></th></tr></thead><tbody>`+
+    Object.entries(fuentes).sort((a,b)=>b[1]-a[1]).map(([f,n])=>
+      `<tr><td>${f}</td><td class="num">${n}</td><td><div class="bar-wrap"><div class="bar" style="width:${n/fmax*100}%"></div></div></td></tr>`).join("")+`</tbody>`;
+
+  renderCashChart();
+}
+
+function renderCashChart(){
+  // últimas 8 semanas de cash (todas las fechas, no filtrado por período)
+  const weeks=[];
+  const t=new Date(); t.setHours(0,0,0,0);
+  let ws=startOfWeek(t);
+  for(let i=7;i>=0;i--){
+    const s=new Date(ws);s.setDate(ws.getDate()-i*7);
+    const e=new Date(s);e.setDate(s.getDate()+6);
+    const sum=PAGOS.filter(p=>p.fecha>=iso(s)&&p.fecha<=iso(e)).reduce((a,p)=>a+usd(p),0);
+    weeks.push({lbl:(s.getMonth()+1)+"/"+s.getDate(),sum});
+  }
+  const max=Math.max(1,...weeks.map(w=>w.sum));
+  document.getElementById("chartCash").innerHTML = weeks.map(w=>
+    `<div class="b" style="height:${Math.max(4,w.sum/max*120)}px"><span>${w.sum?fUSD(w.sum):""}</span><small>${w.lbl}</small></div>`).join("");
+}
+
+/* ============================================================
+   RENDER — LEADERBOARDS (17 KPIs)
+   ============================================================ */
+// agg: "sum" = suma horizontal (counts y cash) | "avg" = promedio del equipo (AOV y ratios)
+const LB_DEFS=[
+  ["Agendas Totales","agendasTot",n=>n,"sum"],
+  ["Agendas Presentadas","agendasPres",n=>n,"sum"],
+  ["Agendas Calif. Presentadas","agendasCalifPres",n=>n,"sum"],
+  ["% Agendas Calificadas","pctCalif",fPct,"avgact","agendasPres"],
+  ["Tasa Cierre General","cierreGeneral",fPct,"avgact","agendasTot"],
+  ["Tasa Cierre Efectiva","cierreEfectiva",fPct,"avgact","agendasCalifPres"],
+  ["Show Up Rate","showUp",fPct,"avgact","agendadas"],
+  ["AOV (Día 1)","aovDia1",fUSD,"pool",["cashDia1","ventasDia1"]],
+  ["AOV (Trato Cerrado)","aovTrato",fUSD,"pool",["cashTrato","uTot"]],
+  ["Unid. Cerradas Llamada","uLlam",n=>n,"sum"],
+  ["Unid. Cerradas Seguimiento","uSeg",n=>n,"sum"],
+  ["Unid. Cerradas Fee","uFee",n=>n,"sum"],
+  ["Unid. Cerradas Otro/Pago","uOtro",n=>n,"sum"],
+  ["Unid. Cerradas Totales","uTot",n=>n,"sum"],
+  ["Cash Collected (Día 1)","cashDia1",fUSD,"sum"],
+  ["Cash Collected Trato Cerrado","cashTrato",fUSD,"sum"],
+  ["Cash Collected (Seguimiento)","cashSeg",fUSD,"sum"],
+  ["Cash Collected Total","cashTotal",fUSD,"sum"],
+];
+const LB_MINS={agendasTot:80,agendasPres:50,uTot:12,cashTotal:15000}; // mínimos esperados editables
+function renderLeaderboard(){
+  const data={}; CLOSERS.forEach(c=>data[c]=closerKPIs(c));
+  const mins = Object.assign({}, LB_MINS, CONFIG.lbMins||{});
+  const lblEquipo = '<th class="num">Equipo</th><th class="num">Mín. esperado</th>';
+  let html=`<thead><tr><th>KPI</th>`+CLOSERS.map(c=>`<th class="num"><span class="${chipClass(c)}">${c}</span></th>`).join("")+lblEquipo+`</tr></thead><tbody>`;
+  LB_DEFS.forEach(([lbl,key,fmt,agg,extra])=>{
+    const vals=CLOSERS.map(c=>data[c][key]);
+    let team;
+    if(agg==="avg") team = vals.reduce((a,b)=>a+b,0)/vals.length;
+    else if(agg==="avgnz"){ const nz=vals.filter(v=>v>0); team = nz.length? nz.reduce((a,b)=>a+b,0)/nz.length : 0; }
+    else if(agg==="avgact"){ const act=CLOSERS.filter(c=>(data[c][extra]||0)>0); team = act.length? act.reduce((a,c)=>a+data[c][key],0)/act.length : 0; } // promedio solo de closers con actividad
+    else if(agg==="pool"){ const num=CLOSERS.reduce((a,c)=>a+(data[c][extra[0]]||0),0), den=CLOSERS.reduce((a,c)=>a+(data[c][extra[1]]||0),0); team = den? num/den : 0; } // total ÷ total (pooled)
+    else team = vals.reduce((a,b)=>a+b,0);
+    const min = mins[key];
+    html+=`<tr><td>${lbl}</td>`+vals.map(v=>`<td class="num">${fmt(v)}</td>`).join("")+
+      `<td class="num"><b>${fmt(team)}</b></td>`+
+      `<td class="num">${min!==undefined? fmt(min):"—"}</td></tr>`;
+  });
+  html+=`</tbody>`;
+  document.getElementById("tblLeaderboard").innerHTML=html;
+}
+
+/* ============================================================
+   RENDER — CLOSERS
+   ============================================================ */
+function renderClosers(){
+  document.getElementById("closerCards").innerHTML = CLOSERS.map(c=>{
+    const k=closerKPIs(c);
+    return `<div class="kpi accent-rosa"><div class="lbl"><span class="${chipClass(c)}">${c}</span>${inactivoTag(c)}</div>
+      <div class="val">${fUSD(k.cashTotal)}</div>
+      <div class="sub">${k.uTot} cierres · ${k.agendasTot} agendas · ${fPct(k.cierreGeneral)} cierre</div></div>`;
+  }).join("");
+  const pick=document.getElementById("closerPick");
+  pick.innerHTML=CLOSERS.map(c=>`<option value="${c}">${inactivoTxt(c)}</option>`).join("");
+  if(!pick.dataset.init){pick.dataset.init=1;pick.onchange=()=>renderCloserLeads(pick.value);}
+  renderCloserLeads(pick.value||CLOSERS[0]);
+}
+function situColor(s){
+  if(CLOSED.includes(s))return"chip-ok";
+  if(["No cerró","Canceló","No agendó"].includes(s))return"chip-no";
+  return"";
+}
+/* ---- fila/encabezado completos del modelo CRM Agendas (compartido) ---- */
+function leadHeaderHTML(){
+  return `<thead><tr>
+    <th></th><th>Nombre</th><th>Perfil</th><th>Fecha agenda</th><th>Fecha llamada</th>
+    <th>Setter</th><th>Closer</th><th>Fuente</th><th>Estrategia</th><th>Medio agenda</th>
+    <th>Calificado</th><th>Contexto setter (pre call)</th><th>Pre-call</th><th>Presentó</th><th>Triaje</th><th>Situación</th>
+    <th>Programa</th><th>Contexto closer (post call)</th><th>Link llamada</th><th class="num">Cash Día 1</th>
+    <th class="num">Cash trato</th><th>Fecha pago</th><th class="num">Restante</th><th>Mes</th><th>Semana</th><th>Cierre</th>
+  </tr></thead>`;
+}
+function ctxCell(t){ t=t||""; if(!t) return '<td>—</td>'; const s=t.length>48?t.slice(0,48)+"…":t; return `<td class="ctx" onclick="showText(decodeURIComponent('${encodeURIComponent(t)}'))" title="Clic para leer completo">${s} 🔎</td>`; }
+function leadRowHTML(l){
+  const ig=l.instagram?`<a href="${l.instagram}" target="_blank" rel="noopener">perfil ↗</a>`:'—';
+  const lk=l.linkLlamada?`<a href="${l.linkLlamada}" target="_blank" rel="noopener">Fathom ↗</a>`:'—';
+  const f=l.fechaLlamada||l.fechaAgenda||l.fecha;
+  return `<tr>
+    <td class="act"><button class="icon-btn" title="Editar" onclick="editLead('${l._id}')">✏️</button></td>
+    <td>${l.nombre||'—'}</td><td>${ig}</td><td>${l.fechaAgenda||'—'}</td><td>${l.fechaLlamada||'—'}</td>
+    <td><span class="${chipClass(l.setter)}">${l.setter||'—'}</span></td>
+    <td><span class="${chipClass(l.closer)}">${l.closer||'—'}</span></td>
+    <td>${l.fuente||'—'}</td><td>${l.estrategia||'—'}</td><td>${l.medioAgenda||'—'}</td>
+    <td>${l.calificado||'—'}</td>${ctxCell(l.contextoSetter)}
+    <td>${l.preCall||'—'}</td>
+    <td><span class="chip ${l.presento==='Sí'?'chip-ok':l.presento==='No'?'chip-no':''}">${l.presento||'—'}</span></td>
+    <td><span class="chip ${l.triaje?'chip-ok':'chip-no'}">${l.triaje?'✓ Sí':'No'}</span></td>
+    <td><span class="chip ${situColor(l.situacion)}">${l.situacion||'—'}</span>${pagoFinanzas(l)?' <span class="chip chip-ok" title="Aparece pagando en el tracker financiero">💰 pagó</span>':''}</td>
+    <td>${l.programa||'—'}</td>${ctxCell(l.contextoCloser)}<td>${lk}</td>
+    <td class="num">${l.cashD1?fUSD(l.cashD1):'—'}</td>
+    <td class="num">${l.cashTrato?fUSD(l.cashTrato):'—'}</td>
+    <td>${l.fechaPago||'—'}</td><td class="num">${l.montoRestante?fUSD(l.montoRestante):'—'}</td>
+    <td>${mesDe(f)}</td><td>${semanaDe(f)}</td>
+    <td><span class="chip ${isClosed(l)?'chip-ok':''}">${isClosed(l)?'Sí':'No'}</span></td>
+  </tr>`;
+}
+const leadDateKey=l=>l.fechaLlamada||l.fechaAgenda||l.fecha||"";
+function renderCloserLeads(closer){
+  const lis=leadsIn().filter(l=>l.closer===closer).sort((a,b)=>leadDateKey(b).localeCompare(leadDateKey(a)));
+  document.getElementById("tblCloserLeads").innerHTML=
+    leadHeaderHTML()+"<tbody>"+(lis.length?lis.map(leadRowHTML).join("")
+      :`<tr><td colspan="25" class="placeholder">Sin leads de ${closer} en este período</td></tr>`)+"</tbody>";
+}
+
+/* ============================================================
+   RENDER — CRM AGENDAS (todos los leads, cronológico por fecha de llamada)
+   ============================================================ */
+function renderAgendas(){
+  const lis=leadsIn().slice().sort((a,b)=>leadDateKey(b).localeCompare(leadDateKey(a)));
+  document.getElementById("agendasCount").textContent=lis.length+" leads";
+  document.getElementById("tblAgendas").innerHTML=
+    leadHeaderHTML()+"<tbody>"+(lis.length?lis.map(leadRowHTML).join("")
+      :`<tr><td colspan="25" class="placeholder">Sin leads en este período</td></tr>`)+"</tbody>";
+}
+
+/* ============================================================
+   RENDER — SETTERS
+   ============================================================ */
+function renderSetters(){
+  document.getElementById("setterCards").innerHTML = SETTERS.map(s=>{
+    const k=setterKPIs(s);
+    return `<div class="kpi accent-verde"><div class="lbl"><span class="${chipClass(s)}">${s}</span>${inactivoTag(s)}</div>
+      <div class="val">${k.conversaciones} conv.</div>
+      <div class="sub">${k.comentarios} calendarios · ${k.callsAgendadas} calls agendadas · ${k.cierres} cierres atrib.</div></div>`;
+  }).join("");
+  const pick=document.getElementById("setterPick");
+  pick.innerHTML=SETTERS.map(s=>`<option value="${s}">${inactivoTxt(s)}</option>`).join("");
+  if(!pick.dataset.init){pick.dataset.init=1;pick.onchange=()=>renderSetterInputs(pick.value);}
+  renderSetterInputs(pick.value||SETTERS[0]);
+}
+function renderSetterInputs(setter){
+  const sis=settersIn().filter(s=>s.setter===setter);
+  const cell=v=>`<td class="num">${v||"·"}</td>`;
+  document.getElementById("tblSetterInputs").innerHTML=
+    `<thead>
+      <tr>
+        <th rowspan="2"></th>
+        <th rowspan="2">Fecha</th>
+        <th colspan="4" style="text-align:center;background:#fbeef0">💬 Conversaciones</th>
+        <th colspan="4" style="text-align:center;background:#f6eefb">📅 Calendarios enviados</th>
+        <th colspan="4" style="text-align:center;background:#eef6ef">📅 Llamadas agendadas</th>
+        <th rowspan="2" class="num">Total conv.</th>
+      </tr>
+      <tr>
+        <th class="num">Ads</th><th class="num">Hist</th><th class="num">Post</th><th class="num">FUP</th>
+        <th class="num">Ads</th><th class="num">Hist</th><th class="num">Post</th><th class="num">FUP</th>
+        <th class="num">Ads</th><th class="num">Hist</th><th class="num">Post</th><th class="num">FUP</th>
+      </tr></thead><tbody>`+
+    (sis.length?sis.map(s=>{
+      const tot=s.conv.ads+s.conv.hist+s.conv.post+s.conv.fup;
+      return `<tr><td class="act"><button class="icon-btn" title="Editar" onclick="editSetter('${s._id}')">✏️</button></td><td>${s.fecha}</td>`+
+        cell(s.conv.ads)+cell(s.conv.hist)+cell(s.conv.post)+cell(s.conv.fup)+
+        cell(s.com.ads)+cell(s.com.hist)+cell(s.com.post)+cell(s.com.fup)+
+        cell(s.call.ads||0)+cell(s.call.hist)+cell(s.call.post)+cell(s.call.fup)+
+        `<td class="num"><b>${tot}</b></td></tr>`;
+    }).join("")
+      :`<tr><td colspan="15" class="placeholder">Sin inputs en este período</td></tr>`)+`</tbody>`;
+}
+
+/* ============================================================
+   RENDER — PAGOS
+   ============================================================ */
+function renderPagos(){
+  const pis=pagosIn().slice().sort((a,b)=>(b.fecha||"").localeCompare(a.fecha||""));
+  const total=pis.reduce((a,p)=>a+usd(p),0);
+  const rev=pis.filter(esVenta).reduce((a,p)=>a+priceOf(p),0);
+  document.getElementById("pagosTotal").textContent="Cash Collected: "+fUSD(total)+"   ·   Revenue (facturado): "+fUSD(rev);
+  document.getElementById("tblPagos").innerHTML=
+    `<thead><tr><th></th><th>Fecha</th><th>Producto</th><th>Cliente</th><th class="num">USD</th><th class="num">Pesos (AR$)</th><th class="num">USD total</th><th>Closer</th><th>Setter</th><th>Concepto</th><th>Método</th></tr></thead><tbody>`+
+    (pis.length?pis.map(p=>`<tr>
+      <td class="act"><button class="icon-btn" title="Editar" onclick="editPago('${p._id}')">✏️</button></td>
+      <td>${p.fecha}</td><td>${p.producto}</td><td>${p.cliente}</td>
+      <td class="num">${p.usd?fUSD(p.usd):'—'}</td>
+      <td class="num">${p.colones?'AR$ '+p.colones.toLocaleString():'—'}</td>
+      <td class="num"><b>${fUSD(usd(p))}</b></td>
+      <td><span class="${chipClass(p.closer)}">${p.closer}</span></td>
+      <td><span class="${chipClass(p.setter)}">${p.setter}</span></td>
+      <td>${p.concepto}</td><td>${p.metodo}</td></tr>`).join("")
+      :`<tr><td colspan="11" class="placeholder">Sin pagos en este período</td></tr>`)+`</tbody>`;
+}
+
+/* ============================================================
+   RENDER — CUOTAS
+   ============================================================ */
+function renderCuotas(){
+  document.getElementById("tblCuotas").innerHTML=
+    `<thead><tr><th></th><th>Alumno</th><th>Programa</th><th class="num">Total</th><th class="num">Abonado</th><th class="num">Falta</th><th>Último cobro</th><th>Siguiente cobro</th><th>Situación</th><th>Cuota</th><th>Closer</th></tr></thead><tbody>`+
+    (CUOTAS.length?CUOTAS.map(c=>{
+      const falta=Math.max(0,c.montoTotal-c.abonado);
+      const sit = c.situacion==="Pagó"?"chip-ok":c.situacion==="No paga"?"chip-no":"";
+      return `<tr><td class="act"><button class="icon-btn" title="Editar" onclick="editCuota('${c._id}')">✏️</button></td>
+        <td>${c.alumno}</td><td>${c.programa}</td>
+        <td class="num">${fUSD(c.montoTotal)}</td><td class="num">${fUSD(c.abonado)}</td>
+        <td class="num ${falta>0?'bad':'good'}">${falta>0?fUSD(falta):'$0'}</td>
+        <td>${c.ultimoCobro}</td><td>${c.siguienteCobro}</td>
+        <td><span class="chip ${sit}">${c.situacion}</span></td><td>${c.cuota}</td>
+        <td><span class="${chipClass(c.closer)}">${c.closer}</span></td></tr>`;
+    }).join("")
+      :`<tr><td colspan="11" class="placeholder">Sin cuotas registradas</td></tr>`)+`</tbody>`;
+  const totalPlan=CUOTAS.reduce((a,c)=>a+c.montoTotal,0);
+  const abonado=CUOTAS.reduce((a,c)=>a+c.abonado,0);
+  const falta=CUOTAS.reduce((a,c)=>a+Math.max(0,c.montoTotal-c.abonado),0);
+  const noPaga=CUOTAS.filter(c=>c.situacion==="No paga").reduce((a,c)=>a+Math.max(0,c.montoTotal-c.abonado),0);
+  const pct=totalPlan?abonado/totalPlan:0;
+  document.getElementById("cuotasKpis").innerHTML=
+    `<div class="kpi accent-rosa" style="margin-bottom:12px"><div class="lbl">💰 Total a cobrar</div><div class="val">${fUSD(totalPlan)}</div></div>
+     <div class="kpi accent-morado" style="margin-bottom:12px"><div class="lbl">⏳ Falta por cobrar</div><div class="val">${fUSD(falta)}</div></div>
+     <div class="kpi accent-info" style="margin-bottom:12px"><div class="lbl">🚫 No paga</div><div class="val">${fUSD(noPaga)}</div></div>
+     <div class="kpi accent-verde"><div class="lbl">✅ % cobrado</div><div class="val">${fPct(pct)}</div></div>`;
+}
+
+/* ============================================================
+   CONFIG
+   ============================================================ */
+function persistConfig(){
+  if(sb){ sb.from('config').upsert({id:1, tipo_cambio:CONFIG.tipoCambio, gastos_ads:CONFIG.gastosAds, lb_mins:CONFIG.lbMins, catalogo:{closers:CONFIG.closers||[],setters:CONFIG.setters||[],productos:CONFIG.productos||[],inactivos:CONFIG.inactivos||[]}}).then(r=>{ if(r&&r.error)console.error("persistConfig",r.error); }); }
+  saveState();
+}
+function applyConfig(){
+  CONFIG.tipoCambio=parseFloat(document.getElementById("cfgTC").value)||CONFIG.tipoCambio;
+  persistConfig(); renderAll();
+  alert("✅ Configuración aplicada. KPIs recalculados.");
+}
+function renderAdsEditor(){
+  const el=document.getElementById("adsEditor"); if(!el)return;
+  const g=CONFIG.gastosAds||[];
+  el.innerHTML = g.length ? g.map(x=>`<div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--borde)">
+      <span style="width:90px;font-weight:650">${x.mes}</span><span style="flex:1">${fUSD(x.monto)}</span>
+      <button class="icon-btn" onclick="removeAdsSpend('${x.mes}')" title="Quitar">🗑️</button></div>`).join("")
+    : `<div style="font-size:12px;color:var(--texto-2)">Sin gastos cargados todavía.</div>`;
+}
+function addAdsSpend(){
+  const mes=document.getElementById("adsMes").value;
+  const monto=parseFloat(document.getElementById("adsMonto").value);
+  if(!mes||isNaN(monto)){alert("Elegí el mes y el monto.");return;}
+  CONFIG.gastosAds=CONFIG.gastosAds||[];
+  const ex=CONFIG.gastosAds.find(g=>g.mes===mes);
+  if(ex)ex.monto=monto; else CONFIG.gastosAds.push({mes,monto});
+  CONFIG.gastosAds.sort((a,b)=>a.mes.localeCompare(b.mes));
+  document.getElementById("adsMonto").value="";
+  persistConfig(); renderAdsEditor(); renderDashboard();
+}
+function removeAdsSpend(mes){
+  CONFIG.gastosAds=(CONFIG.gastosAds||[]).filter(g=>g.mes!==mes);
+  persistConfig(); renderAdsEditor(); renderDashboard();
+}
+/* ---- Editor de Equipo y Productos (autoservicio) ---- */
+function renderTeamEditor(){
+  const el=document.getElementById("teamEditor"); if(!el)return;
+  const esc=s=>(""+s).replace(/'/g,"\\'");
+  const chip=(name,extra)=>`<span style="display:inline-flex;align-items:center;gap:6px;background:var(--rosa-soft);border:1px solid var(--borde);border-radius:20px;padding:5px 10px;font-size:13px;font-weight:600;${INACTIVOS.has(name)?'opacity:.5':''}">${name}${extra}</span>`;
+  const toggle=name=>`<a onclick="toggleInactivo('${esc(name)}')" title="${INACTIVOS.has(name)?'Reactivar':'Marcar inactivo'}" style="cursor:pointer;text-decoration:none">${INACTIVOS.has(name)?'▶':'⏸'}</a>`;
+  const grp=(titulo,inner)=>`<div style="margin-bottom:14px"><div style="font-weight:700;font-size:13px;margin-bottom:8px">${titulo}</div>${inner}</div>`;
+  const addRow=(inputs,fn)=>`<div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;align-items:center">${inputs}<button class="btn btn-add" onclick="${fn}">+ Agregar</button></div>`;
+  el.innerHTML =
+    grp("Closers",
+      `<div style="display:flex;flex-wrap:wrap;gap:8px">${CLOSERS.map(c=>chip(c," "+toggle(c))).join("")||'<span style="color:var(--texto-2)">Sin closers</span>'}</div>`+
+      addRow(`<input id="tAddCloser" placeholder="Nombre del closer" style="width:200px">`,"addMiembro('closer')"))+
+    grp("Setters",
+      `<div style="display:flex;flex-wrap:wrap;gap:8px">${SETTERS.map(s=>chip(s," "+toggle(s))).join("")||'<span style="color:var(--texto-2)">Sin setters</span>'}</div>`+
+      addRow(`<input id="tAddSetter" placeholder="Nombre del setter" style="width:200px">`,"addMiembro('setter')"))+
+    grp("Productos",
+      `<div style="display:flex;flex-wrap:wrap;gap:8px">${PRODUCTOS.map(p=>chip(p+" · "+fUSD(PRICE[p]||0),(CONFIG.productos||[]).some(x=>x.nombre===p)?` <a onclick="removeProducto('${esc(p)}')" title="Quitar" style="cursor:pointer">✕</a>`:"")).join("")||'<span style="color:var(--texto-2)">Sin productos</span>'}</div>`+
+      addRow(`<input id="tAddProdN" placeholder="Nombre del producto" style="width:200px"><input id="tAddProdP" type="number" placeholder="Precio USD" style="width:120px">`,"addProducto()"));
+}
+function addMiembro(tipo){
+  const id=tipo==='closer'?'tAddCloser':'tAddSetter';
+  const name=(document.getElementById(id).value||"").trim(); if(!name)return;
+  const arr=tipo==='closer'?(CONFIG.closers=CONFIG.closers||[]):(CONFIG.setters=CONFIG.setters||[]);
+  const all=tipo==='closer'?CLOSERS:SETTERS;
+  if(!all.includes(name)&&!arr.includes(name))arr.push(name);
+  document.getElementById(id).value="";
+  deriveTeam(); persistConfig(); renderTeamEditor(); renderAll();
+}
+function toggleInactivo(name){
+  CONFIG.inactivos=CONFIG.inactivos||[];
+  const i=CONFIG.inactivos.indexOf(name);
+  if(i>=0) CONFIG.inactivos.splice(i,1); else CONFIG.inactivos.push(name);
+  deriveTeam(); persistConfig(); renderTeamEditor(); renderAll();
+}
+function addProducto(){
+  const n=(document.getElementById("tAddProdN").value||"").trim();
+  const p=parseFloat(document.getElementById("tAddProdP").value);
+  if(!n||isNaN(p)){alert("Poné nombre y precio del producto.");return;}
+  CONFIG.productos=CONFIG.productos||[];
+  const ex=CONFIG.productos.find(x=>x.nombre===n);
+  if(ex)ex.precio=p; else CONFIG.productos.push({nombre:n,precio:p});
+  document.getElementById("tAddProdN").value=""; document.getElementById("tAddProdP").value="";
+  deriveTeam(); persistConfig(); renderTeamEditor(); renderAll();
+}
+function removeProducto(n){
+  CONFIG.productos=(CONFIG.productos||[]).filter(x=>x.nombre!==n);
+  deriveTeam(); persistConfig(); renderTeamEditor(); renderAll();
+}
+
+/* ============================================================
+   PERSISTENCIA (localStorage — funciona al abrir el archivo local)
+   ============================================================ */
+const STORE_KEY="crm_tommy"; // bump al cargar seed real (ignora localStorage viejo de dummy)
+const newId=()=>(window.crypto&&crypto.randomUUID)?crypto.randomUUID():('id'+Date.now()+Math.random().toString(36).slice(2,9));
+function saveState(){
+  if(sb) return; // en modo nube no se usa localStorage; los writes van a Supabase
+  try{ localStorage.setItem(STORE_KEY,JSON.stringify({leads:LEADS,pagos:PAGOS,setters:SETTER_INPUTS,cuotas:CUOTAS,config:CONFIG})); }
+  catch(e){ /* file:// puede bloquear; los datos quedan solo en la sesión */ }
+}
+function loadState(){
+  try{
+    const raw=localStorage.getItem(STORE_KEY);
+    if(!raw)return;
+    const d=JSON.parse(raw);
+    const repl=(arr,data)=>{if(Array.isArray(data)){arr.length=0;data.forEach(x=>arr.push(x));}};
+    repl(LEADS,d.leads);repl(PAGOS,d.pagos);repl(SETTER_INPUTS,d.setters);repl(CUOTAS,d.cuotas);
+    if(d.config)Object.assign(CONFIG,d.config);
+  }catch(e){}
+}
+
+/* ============================================================
+   SUPABASE (backend nube + tiempo real)
+   ============================================================ */
+const vdate=s=>{ if(!s)return null; const d=new Date(s+'T00:00:00'); return (!isNaN(d)&&s===d.toISOString().slice(0,10))?s:null; }; // fecha válida o null (evita "2026-04-31")
+const MAP={
+ leads:{t:'leads',
+   to:o=>({id:o._id||undefined,fecha:vdate(o.fecha),closer:o.closer,setter:o.setter,situacion:o.situacion,cierre:o.cierre,data:o}),
+   from:r=>Object.assign({},r.data||{},{_id:r.id}), arr:()=>LEADS},
+ pagos:{t:'pagos',
+   to:o=>({id:o._id||undefined,fecha:o.fecha||null,producto:o.producto,cliente:o.cliente,tel:o.tel,usd:o.usd||0,colones:o.colones||0,closer:o.closer,setter:o.setter,concepto:o.concepto,metodo:o.metodo,notas:o.notas}),
+   from:r=>({_id:r.id,fecha:r.fecha||'',producto:r.producto,cliente:r.cliente,tel:r.tel,usd:+r.usd||0,colones:+r.colones||0,closer:r.closer,setter:r.setter,concepto:r.concepto,metodo:r.metodo,notas:r.notas}), arr:()=>PAGOS},
+ setter_inputs:{t:'setter_inputs',
+   to:o=>({id:o._id||undefined,fecha:o.fecha||null,setter:o.setter,conv:o.conv||{},com:o.com||{},llamadas:o.call||{}}),
+   from:r=>({_id:r.id,fecha:r.fecha||'',setter:r.setter,conv:r.conv||{},com:r.com||{},call:r.llamadas||{}}), arr:()=>SETTER_INPUTS},
+ cuotas:{t:'cuotas',
+   to:o=>({id:o._id||undefined,programa:o.programa,alumno:o.alumno,monto_total:o.montoTotal||0,abonado:o.abonado||0,ultimo_cobro:o.ultimoCobro,siguiente_cobro:o.siguienteCobro,closer:o.closer,situacion:o.situacion,cuota:o.cuota}),
+   from:r=>({_id:r.id,programa:r.programa,alumno:r.alumno,montoTotal:+r.monto_total||0,abonado:+r.abonado||0,ultimoCobro:r.ultimo_cobro,siguienteCobro:r.siguiente_cobro,closer:r.closer,situacion:r.situacion,cuota:r.cuota}), arr:()=>CUOTAS}
+};
+// Paginación: Supabase/PostgREST corta en 1000 filas por request. Traemos TODO en tandas.
+async function fetchAllRows(table){
+  let all=[], from=0; const size=1000;
+  while(true){
+    const {data,error}=await sb.from(table).select('*').range(from,from+size-1);
+    if(error){ console.error("fetchAllRows",table,error); return {data:all,error}; }
+    all=all.concat(data||[]);
+    if(!data || data.length<size) break;
+    from+=size;
+  }
+  return {data:all};
+}
+async function loadAll(){
+  if(!sb) return;
+  try{
+    const [L,P,S,C,CF]=await Promise.all([
+      fetchAllRows('leads'), fetchAllRows('pagos'),
+      fetchAllRows('setter_inputs'), fetchAllRows('cuotas'),
+      sb.from('config').select('*').eq('id',1).maybeSingle()
+    ]);
+    const set=(key,res)=>{const a=MAP[key].arr();a.length=0;(res.data||[]).forEach(r=>a.push(MAP[key].from(r)));};
+    set('leads',L);set('pagos',P);set('setter_inputs',S);set('cuotas',C);
+    reapplyOutbox();
+    if(CF.data){CONFIG.tipoCambio=+CF.data.tipo_cambio||CONFIG.tipoCambio;CONFIG.gastosAds=CF.data.gastos_ads||CONFIG.gastosAds||[];CONFIG.lbMins=CF.data.lb_mins||CONFIG.lbMins||{};
+      const cat=CF.data.catalogo||{}; CONFIG.closers=cat.closers||[]; CONFIG.setters=cat.setters||[]; CONFIG.productos=cat.productos||[]; CONFIG.inactivos=cat.inactivos||[]; deriveTeam();}
+    // primera carga: sembrar las tablas que estén vacías (por tabla, no todo-o-nada)
+    if(window.CRM_SEED && !window._seeded && (LEADS.length===0||PAGOS.length===0||SETTER_INPUTS.length===0)){
+      window._seeded=true; await seedCloud(); return loadAll();
+    }
+    renderAll();
+  }catch(e){ console.error("loadAll",e); }
+}
+async function seedCloud(){
+  if(!sb||!window.CRM_SEED) return;
+  const S=window.CRM_SEED;
+  const seedT=async(key,arr)=>{
+    if(!arr||!arr.length)return;
+    try{ const {count}=await sb.from(MAP[key].t).select('*',{count:'exact',head:true}); if(count&&count>0)return; }catch(e){return;}
+    const rows=arr.map(MAP[key].to);
+    for(let i=0;i<rows.length;i+=100){ const {error}=await sb.from(MAP[key].t).insert(rows.slice(i,i+100)); if(error){console.error("seed "+key,error);return;} }
+  };
+  await seedT('leads',S.leads); await seedT('pagos',S.pagos); await seedT('setter_inputs',S.setters); await seedT('cuotas',S.cuotas);
+  if(S.config){ try{ await sb.from('config').upsert({id:1,tipo_cambio:S.config.tipoCambio,gastos_ads:S.config.gastosAds||[],lb_mins:S.config.lbMins||{}}); }catch(e){} }
+
+}
+// escritura optimista: actualiza local + render YA, y manda a la nube en background
+const OUTBOX_KEY=STORE_KEY+"_outbox";
+let OUTBOX=[];
+function loadOutbox(){ try{ const r=localStorage.getItem(OUTBOX_KEY); OUTBOX=r?JSON.parse(r)||[]:[]; }catch(e){ OUTBOX=[]; } }
+function persistOutbox(){ try{ localStorage.setItem(OUTBOX_KEY,JSON.stringify(OUTBOX)); }catch(e){} }
+function enqueue(table,op,jsObj){ const isDel=op==='delete'; OUTBOX.push({table,op:isDel?'delete':'upsert',row:isDel?null:MAP[table].to(jsObj),id:jsObj._id,tries:0}); persistOutbox(); }
+let _flushing=false;
+async function flushOutbox(){
+  if(!sb||_flushing||!OUTBOX.length) return;
+  _flushing=true; updateSaveStatus();
+  const ops=OUTBOX.slice();
+  for(const op of ops){
+    try{
+      if(op.op==='delete'){ const {error}=await sb.from(op.table).delete().eq('id',op.id); if(error) throw error; }
+      else { const {error}=await sb.from(op.table).upsert(op.row); if(error) throw error; }
+      const i=OUTBOX.indexOf(op); if(i>=0) OUTBOX.splice(i,1); persistOutbox();
+    }catch(e){ op.tries=(op.tries||0)+1; console.error("flushOutbox",op.table,op.op,e); }
+  }
+  persistOutbox(); _flushing=false; updateSaveStatus();
+}
+function reapplyOutbox(){
+  OUTBOX.forEach(op=>{ const arr=MAP[op.table].arr();
+    if(op.op==='delete'){ const i=arr.findIndex(x=>x._id===op.id); if(i>=0) arr.splice(i,1); return; }
+    const rec=MAP[op.table].from(op.row); const i=arr.findIndex(x=>x._id===op.id);
+    if(i>=0) arr[i]=rec; else arr.push(rec);
+  });
+}
+function updateSaveStatus(){
+  let el=document.getElementById("saveStatus");
+  if(!el){ el=document.createElement("div"); el.id="saveStatus";
+    el.style.cssText="position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:9999;padding:8px 16px;border-radius:22px;font-size:13px;font-weight:700;box-shadow:0 6px 20px rgba(0,0,0,.18);transition:opacity .4s;pointer-events:none;font-family:inherit";
+    document.body.appendChild(el); }
+  const pend=OUTBOX.length, maxTries=OUTBOX.reduce((m,o)=>Math.max(m,o.tries||0),0);
+  clearTimeout(el._t);
+  if(pend===0){ el.textContent="✓ Guardado"; el.style.background="#e7f7ec"; el.style.color="#127a3e"; el.style.opacity="1"; el._t=setTimeout(()=>{el.style.opacity="0";},1600); }
+  else if(maxTries>=2){ el.textContent="⚠️ Sin conexión — reintentando ("+pend+")"; el.style.background="#fdecea"; el.style.color="#b3261e"; el.style.opacity="1"; }
+  else { el.textContent="⏳ Guardando… ("+pend+")"; el.style.background="#fff6e5"; el.style.color="#8a5a00"; el.style.opacity="1"; }
+}
+function dbWrite(table,op,jsObj){ if(!sb) return; enqueue(table,op,jsObj); updateSaveStatus(); flushOutbox(); }
+let _rtTimer=null;
+function subscribeRealtime(){
+  if(!sb) return;
+  sb.channel('crm-rt')
+    .on('postgres_changes',{event:'*',schema:'public'}, ()=>{ clearTimeout(_rtTimer); _rtTimer=setTimeout(loadAll,1200); }) // debounce: coalesce ráfagas de cambios
+    .subscribe();
+}
+
+/* ============================================================
+   DRAWER + FORMULARIOS DE CAPTURA
+   ============================================================ */
+const SITUACIONES=["Nuevo","No cerró","Adentro en seguimiento","Adentro en llamada","Reagendando","Fee","No agendó","Canceló"];
+const CALIFICADOS=["Lead Calificado","Lead No Calificado","Se desconoce"];
+const SINO=["Sí","No"];
+// mes/semana automáticos desde una fecha ISO (formato del tracker)
+const MESES_ES=["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
+function mesDe(iso){ if(!iso)return""; const [y,m]=iso.split("-").map(Number); return y+" - "+MESES_ES[m-1]; }
+function semanaDe(iso){ if(!iso)return""; const [y,m,d]=iso.split("-").map(Number); return MESES_ES[m-1]+" - semana "+(Math.floor((d-1)/7)+1); }
+/* PRODUCTOS se declara arriba (let, dinámico desde PRICE + Config) */
+const FUENTES=["Ads","Historias","Posts","Inbound","Follow-ups","Formulario"];
+const CONCEPTOS=["PIF","Fee","1ra Cuota","2da Cuota","3ra Cuota","4ta Cuota","Otro"]; // PIF/Fee/1ra Cuota = ventas nuevas (revenue); 2da+ = cobranza
+const METODOS=["Transferencia","Tarjeta","SINPE","PayPal","Crypto","Efectivo","Link de pago"];
+const today=()=>iso(new Date());
+const sel=(id,opts,val)=>`<select id="${id}">`+opts.map(o=>`<option ${o===val?'selected':''}>${o}</option>`).join("")+`</select>`;
+const val=id=>document.getElementById(id).value;
+const numv=id=>parseFloat(document.getElementById(id).value)||0;
+
+// IDs estables por registro (para editar/borrar)
+let _idc=1;
+function ensureIds(){
+  [LEADS,PAGOS,SETTER_INPUTS,CUOTAS].forEach(arr=>arr.forEach(r=>{
+    if(!r._id)r._id=newId();
+  }));
+}
+function delById(arr,id){const i=arr.findIndex(x=>x._id===id);if(i>=0)arr.splice(i,1);}
+
+function openDrawer(title,body,onSave,onDelete){
+  document.getElementById("drawerTitle").textContent=title;
+  document.getElementById("drawerBody").innerHTML=body;
+  document.getElementById("drawerSave").onclick=()=>{ if(onSave()!==false){ saveState(); closeDrawer(); } };
+  const del=document.getElementById("drawerDelete");
+  if(onDelete){ del.style.display="inline-block"; del.onclick=()=>{ if(confirm("¿Eliminar este registro? No se puede deshacer.")){ onDelete(); saveState(); closeDrawer(); } }; }
+  else { del.style.display="none"; del.onclick=null; }
+  document.getElementById("overlay").classList.add("open");
+  document.getElementById("drawer").classList.add("open");
+}
+function closeDrawer(){
+  document.getElementById("overlay").classList.remove("open");
+  document.getElementById("drawer").classList.remove("open");
+}
+// modal solo-lectura para leer contexto setter/closer sin abrir el lápiz
+function showText(t){ document.getElementById("textModalBody").textContent=t||"—"; document.getElementById("textOverlay").classList.add("open"); document.getElementById("textModal").classList.add("open"); }
+function closeText(){ document.getElementById("textOverlay").classList.remove("open"); document.getElementById("textModal").classList.remove("open"); }
+// pop-up de campos obligatorios al guardar un lead
+function warnFaltan(arr){ document.getElementById("valList").innerHTML=arr.map(x=>"<li>"+x+"</li>").join(""); document.getElementById("valOverlay").classList.add("open"); document.getElementById("valModal").classList.add("open"); }
+function closeVal(){ document.getElementById("valOverlay").classList.remove("open"); document.getElementById("valModal").classList.remove("open"); }
+
+function openLeadForm(rec){
+  const edit=!!rec;
+  const cp=document.getElementById("closerPick");
+  const _act=closersActivos();
+  const closerDef=edit?rec.closer:((cp&&cp.value&&_act.includes(cp.value))?cp.value:_act[0]);
+  // dropdown: solo closers activos; si se edita un lead viejo de un closer inactivo, se conserva su closer
+  const closerOpts=(edit&&rec.closer&&!_act.includes(rec.closer))?[..._act,rec.closer]:_act;
+  const g=(k,d)=>edit?(rec[k]??d):d;
+  const ta=(id,v)=>`<textarea id="${id}">${(v||"").replace(/</g,"&lt;")}</textarea>`;
+  openDrawer(edit?"✏️ Editar lead":"👤 Nuevo lead",`
+    <div class="field"><label>Nombre del lead</label><input type="text" id="f_nombre" placeholder="Nombre completo" value="${g('nombre','')}"></div>
+    <div class="field"><label>Link del perfil (Instagram)</label><input type="text" id="f_insta" placeholder="https://instagram.com/..." value="${g('instagram','')}"></div>
+    <div class="field-row"><div class="field"><label>Teléfono</label><input type="text" id="f_tel" value="${g('telefono','')}"></div>
+      <div class="field"><label>Correo</label><input type="text" id="f_correo" value="${g('correo','')}"></div></div>
+    <div class="field-row"><div class="field"><label>Edad</label><input type="number" id="f_edad" value="${g('edad','')}"></div>
+      <div class="field"><label>Situación laboral</label><input type="text" id="f_slab" value="${g('situacionLaboral','')}"></div></div>
+    <div class="field-row"><div class="field"><label>Nivel de inversión</label><input type="text" id="f_ninv" value="${g('nivelInversion','')}"></div>
+      <div class="field"><label>¿Quién decide?</label><input type="text" id="f_dec" value="${g('decision','')}"></div></div>
+    <div class="field"><label>Notas (formulario)</label>${ta("f_notas",g('notas',''))}</div>
+    <div class="field-row"><div class="field"><label>Fecha de agenda</label><input type="date" id="f_fag" value="${g('fechaAgenda','')}"></div>
+      <div class="field"><label>Fecha de llamada</label><input type="date" id="f_fll" value="${g('fechaLlamada','')}"></div></div>
+    <div class="field-row"><div class="field"><label>Closer</label>${sel("f_closer",closerOpts,closerDef)}</div>
+      <div class="field"><label>Setter</label>${sel("f_setter",SETTERS,g('setter',SETTERS[0]))}</div></div>
+    <div class="field-row"><div class="field"><label>Fuente</label>${sel("f_fuente",FUENTES,g('fuente','Ads'))}</div>
+      <div class="field"><label>Medio de agenda</label><input type="text" id="f_medio" value="${g('medioAgenda','')}"></div></div>
+    <div class="field"><label>Estrategia</label><input type="text" id="f_estr" value="${g('estrategia','')}"></div>
+    <div class="field-row"><div class="field"><label>Calificado</label>${sel("f_calif",CALIFICADOS,g('calificado','Se desconoce'))}</div>
+      <div class="field"><label>Pre-call hecho</label>${sel("f_pre",["","Sí","No"],g('preCall',''))}</div></div>
+    <div class="field"><label>Contexto setter (pre call)</label>${ta("f_ctxs",g('contextoSetter',''))}</div>
+    <div class="field-row"><div class="field"><label>¿Se presentó?</label>${sel("f_pres",["","Sí","No","Por tomar"],g('presento',''))}</div>
+      <div class="field"><label>Producto</label>${sel("f_prog",PRODUCTOS,g('programa',PRODUCTOS[0]||""))}</div></div>
+    <div class="field"><label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:600;user-select:none"><input type="checkbox" id="f_triaje" ${g('triaje',false)?'checked':''} style="width:auto;margin:0;transform:scale(1.25)"> ✅ Triaje realizado</label>
+      <div style="font-size:12px;color:var(--texto-2);margin-top:4px">Tildá si a este lead se le hizo el triaje. Aparece como ✓ Sí / No en la tabla de leads.</div></div>
+    <div class="field"><label>Situación</label>${sel("f_situ",SITUACIONES,g('situacion','Nuevo'))}</div>
+    <div class="field"><label>Contexto closer (post call)</label>${ta("f_ctxc",g('contextoCloser',''))}</div>
+    <div class="field"><label>Link de la llamada (Fathom) — obligatorio si se presentó (link o motivo)</label><input type="text" id="f_link" value="${g('linkLlamada','')}"></div>
+    <div class="field-row"><div class="field"><label>Cash Collected Día 1 ($)</label><input type="number" id="f_c1" value="${g('cashD1',0)}"></div>
+      <div class="field"><label>Cash Collected Trato Cerrado ($)</label><input type="number" id="f_ct" value="${g('cashTrato',0)}"></div></div>
+    <div class="field"><label>Fecha de pago para ingreso</label><input type="date" id="f_fpago" value="${g('fechaPago','')}"></div>
+  `,()=>{
+    const nombre=val("f_nombre").trim();
+    if(!nombre){alert("Poné el nombre del lead.");return false;}
+    const situacion=val("f_situ"); const programa=val("f_prog");
+    const cierre=CLOSED.includes(situacion)?"Sí":"No";
+    const valor=PRICE[programa]||0;
+    const cashD1=numv("f_c1"); const cashTrato=numv("f_ct");
+    const calificado=val("f_calif");
+    const fll=val("f_fll"), fag=val("f_fag");
+    // Campos importantes obligatorios (bloquea el guardado hasta completarlos)
+    const faltan=[];
+    const sitNueva = situacion==="Nuevo";
+    if(!val("f_setter")) faltan.push("Setter");
+    if(!calificado || calificado==="Se desconoce") faltan.push("Calificado (Sí / No)");
+    if(!val("f_situ")) faltan.push("Situación");
+    if(!sitNueva){
+      // lead ya trabajado: exigir datos de la llamada
+      if(!fll) faltan.push("Fecha de llamada");
+      if(!val("f_pres")) faltan.push("¿Se presentó?");
+    }
+    // Si se presentó = Sí, el Fathom es obligatorio (link o explicación de por qué no está)
+    if(val("f_pres")==="Sí" && !val("f_link").trim()) faltan.push("Link de Fathom (o explicación de por qué no está)");
+    if(faltan.length){ warnFaltan(faltan); return false; }
+    const obj={nombre,instagram:val("f_insta"),fechaAgenda:fag,fechaLlamada:fll,fecha:fll||fag,
+      setter:val("f_setter"),closer:val("f_closer"),fuente:val("f_fuente"),estrategia:val("f_estr"),medioAgenda:val("f_medio"),
+      calificado,califica:(calificado==="Lead Calificado"?"Sí":calificado==="Lead No Calificado"?"No":""),
+      contextoSetter:val("f_ctxs"),preCall:val("f_pre"),presento:val("f_pres"),triaje:document.getElementById("f_triaje").checked,situacion,programa,
+      producto:programa,valor,contextoCloser:val("f_ctxc"),linkLlamada:val("f_link"),
+      cashD1,pagoLl:cashD1,pagoSeg:0,cashTrato,fechaPago:val("f_fpago"),
+      montoRestante:Math.max(0,cashTrato-cashD1),cierre,
+      telefono:val("f_tel"),correo:val("f_correo"),edad:val("f_edad"),situacionLaboral:val("f_slab"),
+      nivelInversion:val("f_ninv"),decision:val("f_dec"),notas:val("f_notas")};
+    if(edit){ Object.assign(rec,obj); dbWrite('leads','update',rec); }
+    else { obj._id=newId(); LEADS.push(obj); dbWrite('leads','insert',obj); }
+    if(cp) cp.value=val("f_closer");
+    renderAll();
+  }, edit?()=>{dbWrite('leads','delete',rec);delById(LEADS,rec._id);renderAll();}:null);
+}
+function editLead(id){openLeadForm(LEADS.find(x=>x._id===id));}
+
+function openSetterForm(rec){
+  const edit=!!rec;
+  const setter=edit?rec.setter:(document.getElementById("setterPick").value||SETTERS[0]);
+  const n=(id,lab,v)=>`<div><label>${lab}</label><input type="number" id="${id}" value="${v||0}"></div>`;
+  const c=edit?rec.conv:{},m=edit?rec.com:{},l=edit?rec.call:{};
+  openDrawer(edit?"✏️ Editar input diario":"📞 Nuevo input diario",`
+    <div class="field-row"><div class="field"><label>Fecha</label><input type="date" id="s_fecha" value="${edit?rec.fecha:today()}"></div>
+      <div class="field"><label>Setter</label>${sel("s_setter",SETTERS,setter)}</div></div>
+    <div class="grp"><div class="grp-t">💬 Conversaciones</div><div class="grp-4">
+      ${n("s_c_ads","Ads",c.ads)}${n("s_c_hist","Historias",c.hist)}${n("s_c_post","Posts",c.post)}${n("s_c_fup","Follow-ups",c.fup)}</div></div>
+    <div class="grp"><div class="grp-t">📅 Calendarios enviados</div><div class="grp-4">
+      ${n("s_m_ads","Ads",m.ads)}${n("s_m_hist","Historias",m.hist)}${n("s_m_post","Posts",m.post)}${n("s_m_fup","Follow-ups",m.fup)}</div></div>
+    <div class="grp"><div class="grp-t">📅 Llamadas agendadas</div><div class="grp-4">
+      ${n("s_l_ads","Ads",l.ads)}${n("s_l_hist","Historias",l.hist)}${n("s_l_post","Posts",l.post)}${n("s_l_fup","Follow-ups",l.fup)}</div></div>
+  `,()=>{
+    const obj={fecha:val("s_fecha"),setter:val("s_setter"),
+      conv:{ads:numv("s_c_ads"),hist:numv("s_c_hist"),post:numv("s_c_post"),fup:numv("s_c_fup")},
+      com:{ads:numv("s_m_ads"),hist:numv("s_m_hist"),post:numv("s_m_post"),fup:numv("s_m_fup")},
+      call:{ads:numv("s_l_ads"),hist:numv("s_l_hist"),post:numv("s_l_post"),fup:numv("s_l_fup")}};
+    if(edit){ Object.assign(rec,obj); dbWrite('setter_inputs','update',rec); }
+    else { obj._id=newId(); SETTER_INPUTS.push(obj); dbWrite('setter_inputs','insert',obj); }
+    document.getElementById("setterPick").value=val("s_setter");
+    renderAll();
+  }, edit?()=>{dbWrite('setter_inputs','delete',rec);delById(SETTER_INPUTS,rec._id);renderAll();}:null);
+}
+function editSetter(id){openSetterForm(SETTER_INPUTS.find(x=>x._id===id));}
+
+function openPagoForm(rec){
+  const edit=!!rec; const g=(k,d)=>edit?(rec[k]??d):d;
+  openDrawer(edit?"✏️ Editar pago":"💰 Nuevo pago",`
+    <div class="field-row"><div class="field"><label>Fecha</label><input type="date" id="p_fecha" value="${g('fecha',today())}"></div>
+      <div class="field"><label>Producto</label>${sel("p_prod",[...PRODUCTOS,"Cuota"],g('producto',PRODUCTOS[0]||""))}</div></div>
+    <div class="field"><label>Nombre del cliente</label><input type="text" id="p_cli" placeholder="Nombre completo" value="${g('cliente','')}"></div>
+    <div class="field"><label>Teléfono</label><input type="text" id="p_tel" placeholder="+506 ..." value="${g('tel','')}"></div>
+    <div class="field-row"><div class="field"><label>Efectivo recaudado (USD)</label><input type="number" id="p_usd" value="${g('usd',0)}"></div>
+      <div class="field"><label>Pesos (AR$)</label><input type="number" id="p_col" value="${g('colones',0)}"></div></div>
+    <div class="field-row"><div class="field"><label>Closer</label>${sel("p_closer",CLOSERS,g('closer',CLOSERS[0]))}</div>
+      <div class="field"><label>Setter</label>${sel("p_setter",SETTERS,g('setter',SETTERS[0]))}</div></div>
+    <div class="field-row"><div class="field"><label>Concepto</label>${sel("p_conc",CONCEPTOS,g('concepto','PIF'))}</div>
+      <div class="field"><label>Método</label>${sel("p_met",METODOS,g('metodo','Transferencia'))}</div></div>
+  `,()=>{
+    const cli=val("p_cli").trim();
+    if(!cli){alert("Poné el nombre del cliente.");return false;}
+    const obj={fecha:val("p_fecha"),producto:val("p_prod"),cliente:cli,tel:val("p_tel"),
+      usd:numv("p_usd"),colones:numv("p_col"),closer:val("p_closer"),setter:val("p_setter"),
+      concepto:val("p_conc"),metodo:val("p_met"),notas:edit?(rec.notas||""):""};
+    if(edit){ Object.assign(rec,obj); dbWrite('pagos','update',rec); }
+    else { obj._id=newId(); PAGOS.push(obj); dbWrite('pagos','insert',obj); }
+    renderAll();
+  }, edit?()=>{dbWrite('pagos','delete',rec);delById(PAGOS,rec._id);renderAll();}:null);
+}
+function editPago(id){openPagoForm(PAGOS.find(x=>x._id===id));}
+
+function openCuotaForm(rec){
+  const edit=!!rec; const g=(k,d)=>edit?(rec[k]??d):d;
+  const sigDate=g('siguienteCobro','');
+  openDrawer(edit?"✏️ Editar cuota":"💸 Nueva cuota",`
+    <div class="field"><label>Nombre del alumno</label><input type="text" id="q_alumno" placeholder="Nombre completo" value="${g('alumno','')}"></div>
+    <div class="field-row"><div class="field"><label>Producto</label>${sel("q_prog",["$1.400","$1.452","$1.200","Plan custom"],g('programa','$1.400'))}</div>
+      <div class="field"><label>Cuota</label><input type="text" id="q_cuota" placeholder="2 de 3" value="${g('cuota','')}"></div></div>
+    <div class="field-row"><div class="field"><label>Monto total ($)</label><input type="number" id="q_total" value="${g('montoTotal',0)}"></div>
+      <div class="field"><label>Abonado ($)</label><input type="number" id="q_abon" value="${g('abonado',0)}"></div></div>
+    <div class="field-row"><div class="field"><label>Último cobro</label><input type="date" id="q_ult" value="${g('ultimoCobro','')==='—'?'':g('ultimoCobro','')}"></div>
+      <div class="field"><label>Siguiente cobro</label><input type="date" id="q_sig" value="${sigDate==='—'?'':sigDate}"></div></div>
+    <div class="field-row"><div class="field"><label>Closer</label>${sel("q_closer",CLOSERS,g('closer',CLOSERS[0]))}</div>
+      <div class="field"><label>Situación</label>${sel("q_situ",["Pendiente","Pagó","No paga","Negociando"],g('situacion','Pendiente'))}</div></div>
+  `,()=>{
+    const al=val("q_alumno").trim();
+    if(!al){alert("Poné el nombre del alumno.");return false;}
+    const obj={programa:val("q_prog"),alumno:al,montoTotal:numv("q_total"),abonado:numv("q_abon"),
+      ultimoCobro:val("q_ult")||"—",siguienteCobro:val("q_sig")||"—",
+      closer:val("q_closer"),situacion:val("q_situ"),cuota:val("q_cuota")||"—"};
+    if(edit){ Object.assign(rec,obj); dbWrite('cuotas','update',rec); }
+    else { obj._id=newId(); CUOTAS.push(obj); dbWrite('cuotas','insert',obj); }
+    renderAll();
+  }, edit?()=>{dbWrite('cuotas','delete',rec);delById(CUOTAS,rec._id);renderAll();}:null);
+}
+function editCuota(id){openCuotaForm(CUOTAS.find(x=>x._id===id));}
+
+function openMinsForm(){
+  const mins=Object.assign({}, LB_MINS, CONFIG.lbMins||{});
+  const body=`<div style="font-size:12px;color:var(--texto-2);margin-bottom:14px">Dejá vacío el que no quieras medir. En % usá decimal (0.6 = 60%).</div>`+
+    LB_DEFS.map(([lbl,key,fmt,agg])=>`<div class="field"><label>${lbl}${fmt===fPct?' (%)':''}</label><input type="number" step="any" id="min_${key}" value="${mins[key]!=null?mins[key]:''}" placeholder="sin mínimo"></div>`).join("");
+  openDrawer("🎯 Mínimos esperados del equipo", body, ()=>{
+    const m={};
+    LB_DEFS.forEach(([l,key])=>{const v=document.getElementById("min_"+key).value; if(v!=="")m[key]=parseFloat(v);});
+    CONFIG.lbMins=m; persistConfig(); renderLeaderboard();
+  });
+}
+
+/* ============================================================
+   ORQUESTACIÓN
+   ============================================================ */
+let currentView="home";
+function renderActiveHeavy(){
+  switch(currentView){
+    case "leaderboards": renderLeaderboard(); break;
+    case "closers": renderClosers(); break;
+    case "agendas": renderAgendas(); break;
+    case "setters": renderSetters(); break;
+    case "pagos": renderPagos(); break;
+    case "cuotas": renderCuotas(); break;
+    case "config": renderAdsEditor(); renderTeamEditor(); break;
+  }
+}
+function renderAll(){
+  deriveTeam();
+  PAID_SET=null; // recomputar cruce lead↔pago (finanzas)
+  renderDashboard();       // landing liviano (KPIs + top tablas chicas)
+  renderActiveHeavy();     // render perezoso: solo la vista pesada activa
+  staggerCards();
+}
+// pequeña animación: entrada escalonada de las KPI cards visibles
+function staggerCards(){
+  document.querySelectorAll(".view:not(.hidden) .kpi").forEach((c,i)=>{
+    c.style.animation="none";c.offsetHeight;
+    c.style.animation=`cardIn .4s var(--ease) both`;c.style.animationDelay=(i*55)+"ms";
+  });
+}
+function setPeriod(preset,fromCustom){
+  STATE.preset=preset;
+  if(preset!=="Personalizado"){
+    const r=periodRange(preset);
+    STATE.desde=r.desde;STATE.hasta=r.hasta;
+  }else if(!fromCustom){
+    // mantener fechas actuales
+  }
+  // sync inputs
+  ["dDesde"].forEach(id=>document.getElementById(id).value=STATE.desde);
+  document.getElementById("dHasta").value=STATE.hasta;
+  // sync all period selects + pills
+  ["periodSelect","periodSelect2","periodSelect3","periodSelect4","periodSelect5","periodSelect6"].forEach(id=>{const e=document.getElementById(id);if(e)e.value=preset;});
+  const pillTxt=`${STATE.desde} → ${STATE.hasta}`;
+  ["periodPill","periodPill2","periodPill3","periodPill4","periodPill5","periodPill6"].forEach(id=>{const e=document.getElementById(id);if(e)e.textContent=pillTxt;});
+  renderAll();
+}
+
+/* INIT */
+function init(){
+  if(sb){
+    subscribeRealtime();   // tiempo real: cambios de otros se reflejan solos
+    loadOutbox();
+    window.addEventListener('online',flushOutbox);
+    setInterval(flushOutbox,12000);
+  }else{
+    loadState();           // modo local: datos guardados en este navegador
+    ensureIds();
+  }
+  // poblar selects de período
+  ["periodSelect","periodSelect2","periodSelect3","periodSelect4","periodSelect5","periodSelect6"].forEach(id=>{
+    const e=document.getElementById(id);if(!e)return;
+    e.innerHTML=PRESETS.map(p=>`<option ${p===STATE.preset?'selected':''}>${p}</option>`).join("");
+    e.onchange=()=>setPeriod(e.value);
+  });
+  document.getElementById("dDesde").onchange=e=>{STATE.desde=e.target.value;setPeriod("Personalizado",true);};
+  document.getElementById("dHasta").onchange=e=>{STATE.hasta=e.target.value;setPeriod("Personalizado",true);};
+  document.getElementById("cfgTC").value=CONFIG.tipoCambio;
+  renderAdsEditor();
+
+  // nav
+  const titles={home:"📊 Dashboard",leaderboards:"🏆 Métricas",closers:"👤 Closers",agendas:"📋 CRM Agendas",setters:"📞 Setters",pagos:"💰 Registro de Pagos",cuotas:"💸 Cuotas",config:"⚙️ Config"};
+  document.querySelectorAll(".navitem").forEach(btn=>{
+    btn.onclick=()=>{
+      document.querySelectorAll(".navitem").forEach(b=>b.classList.remove("active"));
+      btn.classList.add("active");
+      const v=btn.dataset.view;
+      currentView=v;
+      document.querySelectorAll(".view").forEach(s=>s.classList.add("hidden"));
+      const sec=document.getElementById("view-"+v);
+      sec.classList.remove("hidden");
+      renderActiveHeavy();   // render perezoso de la vista que se abre
+      // re-trigger animation
+      sec.style.animation="none";sec.offsetHeight;sec.style.animation="";
+      document.getElementById("viewTitle").textContent=titles[v];
+      staggerCards();
+    };
+  });
+
+  setPeriod("Este año");
+  if(sb){ loadAll().then(flushOutbox); flushOutbox(); }   // trae datos + reenvía lo pendiente
+}
+init();
+</script>
+</body>
+</html>
