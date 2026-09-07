@@ -139,6 +139,7 @@ tr:last-child td{border-bottom:none}
 .chip-yasmin{background:#D9B8E8;color:#6a3a86}
 .chip-ok{background:var(--verde);color:#2e6b31}
 .chip-no{background:#ffe0e0;color:#b23b3b}
+.chip-seg{background:#FFF3C4;color:#8a6d00}
 /* bars */
 .bar-wrap{background:var(--gris-claro);border-radius:999px;height:8px;overflow:hidden;min-width:80px}
 .bar{height:100%;border-radius:999px;background:linear-gradient(90deg,var(--morado),var(--rosa));transition:width .6s var(--ease)}
@@ -841,6 +842,7 @@ function renderClosers(){
 }
 function situColor(s){
   if(CLOSED.includes(s))return"chip-ok";
+  if(["En seguimiento","Reagendando"].includes(s))return"chip-seg";
   if(["No cerró","Canceló","No agendó"].includes(s))return"chip-no";
   return"";
 }
@@ -1211,7 +1213,7 @@ function subscribeRealtime(){
 /* ============================================================
    DRAWER + FORMULARIOS DE CAPTURA
    ============================================================ */
-const SITUACIONES=["Nuevo","No cerró","Adentro en seguimiento","Adentro en llamada","Reagendando","Fee","No agendó","Canceló"];
+const SITUACIONES=["Nuevo","En seguimiento","No cerró","Adentro en seguimiento","Adentro en llamada","Reagendando","Fee","No agendó","Canceló"];
 const CALIFICADOS=["Lead Calificado","Lead No Calificado","Se desconoce"];
 const SINO=["Sí","No"];
 // mes/semana automáticos desde una fecha ISO (formato del tracker)
