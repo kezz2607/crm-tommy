@@ -140,6 +140,10 @@ tr:last-child td{border-bottom:none}
 .chip-ok{background:var(--verde);color:#2e6b31}
 .chip-no{background:#ffe0e0;color:#b23b3b}
 .chip-seg{background:#FFF3C4;color:#8a6d00}
+.cli-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+.cli-card{background:var(--blanco);border:1px solid var(--borde);border-radius:16px;padding:16px;box-shadow:var(--shadow-sm);display:flex;flex-direction:column;gap:9px}
+.cli-wins{width:100%;min-height:66px;border:1px solid var(--borde);border-radius:10px;padding:8px 10px;font-family:inherit;font-size:13px;resize:vertical;box-sizing:border-box}
+.cli-wins:focus{border-color:var(--morado);box-shadow:0 0 0 3px rgba(217,184,232,.25);outline:none}
 /* bars */
 .bar-wrap{background:var(--gris-claro);border-radius:999px;height:8px;overflow:hidden;min-width:80px}
 .bar{height:100%;border-radius:999px;background:linear-gradient(90deg,var(--morado),var(--rosa));transition:width .6s var(--ease)}
@@ -238,6 +242,7 @@ td.act{text-align:center;width:42px}
   <button class="navitem active" data-view="home"><span class="ico">📊</span><span class="txt">Dashboard</span></button>
   <button class="navitem" data-view="leaderboards"><span class="ico">🏆</span><span class="txt">Métricas</span></button>
   <button class="navitem" data-view="closers"><span class="ico">👤</span><span class="txt">Closers</span></button>
+  <button class="navitem" data-view="clientes"><span class="ico">🧑‍🤝‍🧑</span><span class="txt">Clientes</span></button>
   <button class="navitem" data-view="agendas"><span class="ico">📋</span><span class="txt">CRM Agendas</span></button>
   <button class="navitem" data-view="setters"><span class="ico">📞</span><span class="txt">Setters</span></button>
   <button class="navitem" data-view="pagos"><span class="ico">💰</span><span class="txt">Registro de Pagos</span></button>
@@ -355,6 +360,14 @@ td.act{text-align:center;width:42px}
         <div class="card-h">📊 Resumen de cobro</div>
         <div id="cuotasKpis" style="padding:8px"></div>
       </div>
+    </div>
+  </section>
+
+  <!-- ===== CLIENTES ===== -->
+  <section class="view hidden" id="view-clientes">
+    <div class="card">
+      <div class="card-h"><span>🧑‍🤝‍🧑 Clientes <span class="pill">se crean solos al cerrar / entrar en seguimiento</span></span><button class="btn btn-add" onclick="openClienteForm()">+ Nuevo cliente</button></div>
+      <div id="cliGrid" class="cli-grid" style="margin-top:6px"></div>
     </div>
   </section>
 
@@ -490,6 +503,7 @@ function C(programa,alumno,montoTotal,abonado,ultimoCobro,siguienteCobro,closer,
   return {programa,alumno,montoTotal,abonado,ultimoCobro,siguienteCobro,closer,situacion,cuota};
 }
 const CUOTAS = [];
+const CLIENTES = [];
 
 /* ---- Inyectar SEED histórico si está disponible ---- */
 function applySeed(seed){
@@ -1116,7 +1130,10 @@ const MAP={
    from:r=>({_id:r.id,fecha:r.fecha||'',setter:r.setter,conv:r.conv||{},com:r.com||{},call:r.llamadas||{}}), arr:()=>SETTER_INPUTS},
  cuotas:{t:'cuotas',
    to:o=>({id:o._id||undefined,programa:o.programa,alumno:o.alumno,monto_total:o.montoTotal||0,abonado:o.abonado||0,ultimo_cobro:o.ultimoCobro,siguiente_cobro:o.siguienteCobro,closer:o.closer,situacion:o.situacion,cuota:o.cuota}),
-   from:r=>({_id:r.id,programa:r.programa,alumno:r.alumno,montoTotal:+r.monto_total||0,abonado:+r.abonado||0,ultimoCobro:r.ultimo_cobro,siguienteCobro:r.siguiente_cobro,closer:r.closer,situacion:r.situacion,cuota:r.cuota}), arr:()=>CUOTAS}
+   from:r=>({_id:r.id,programa:r.programa,alumno:r.alumno,montoTotal:+r.monto_total||0,abonado:+r.abonado||0,ultimoCobro:r.ultimo_cobro,siguienteCobro:r.siguiente_cobro,closer:r.closer,situacion:r.situacion,cuota:r.cuota}), arr:()=>CUOTAS},
+ clientes:{t:'clientes',
+   to:o=>({id:o._id||undefined,lead_id:o.leadId||null,nombre:o.nombre,email:o.email,tel:o.tel,plan:o.plan,monto:o.monto||0,cash_collected:o.cashCollected||0,cash_trato:o.cashTrato||0,closer:o.closer,fecha_inicio:o.fechaInicio||null,plazo_dias:o.plazoDias||null,wins:o.wins||''}),
+   from:r=>({_id:r.id,leadId:r.lead_id||'',nombre:r.nombre,email:r.email||'',tel:r.tel||'',plan:r.plan||'',monto:+r.monto||0,cashCollected:+r.cash_collected||0,cashTrato:+r.cash_trato||0,closer:r.closer||'',fechaInicio:r.fecha_inicio||'',plazoDias:r.plazo_dias||null,wins:r.wins||''}), arr:()=>CLIENTES}
 };
 // Paginación: Supabase/PostgREST corta en 1000 filas por request. Traemos TODO en tandas.
 async function fetchAllRows(table){
@@ -1133,13 +1150,13 @@ async function fetchAllRows(table){
 async function loadAll(){
   if(!sb) return;
   try{
-    const [L,P,S,C,CF]=await Promise.all([
+    const [L,P,S,C,CLI,CF]=await Promise.all([
       fetchAllRows('leads'), fetchAllRows('pagos'),
-      fetchAllRows('setter_inputs'), fetchAllRows('cuotas'),
+      fetchAllRows('setter_inputs'), fetchAllRows('cuotas'), fetchAllRows('clientes'),
       sb.from('config').select('*').eq('id',1).maybeSingle()
     ]);
     const set=(key,res)=>{const a=MAP[key].arr();a.length=0;(res.data||[]).forEach(r=>a.push(MAP[key].from(r)));};
-    set('leads',L);set('pagos',P);set('setter_inputs',S);set('cuotas',C);
+    set('leads',L);set('pagos',P);set('setter_inputs',S);set('cuotas',C);set('clientes',CLI);
     reapplyOutbox();
     if(CF.data){CONFIG.tipoCambio=+CF.data.tipo_cambio||CONFIG.tipoCambio;CONFIG.gastosAds=CF.data.gastos_ads||CONFIG.gastosAds||[];CONFIG.lbMins=CF.data.lb_mins||CONFIG.lbMins||{};
       const cat=CF.data.catalogo||{}; CONFIG.closers=cat.closers||[]; CONFIG.setters=cat.setters||[]; CONFIG.productos=cat.productos||[]; CONFIG.inactivos=cat.inactivos||[]; deriveTeam();}
@@ -1332,6 +1349,7 @@ function openLeadForm(rec){
       nivelInversion:val("f_ninv"),decision:val("f_dec"),notas:val("f_notas")};
     if(edit){ Object.assign(rec,obj); dbWrite('leads','update',rec); }
     else { obj._id=newId(); LEADS.push(obj); dbWrite('leads','insert',obj); }
+    maybeCrearCliente(edit?rec:obj);
     if(cp) cp.value=val("f_closer");
     renderAll();
   }, edit?()=>{dbWrite('leads','delete',rec);delById(LEADS,rec._id);renderAll();}:null);
@@ -1386,6 +1404,7 @@ function openPagoForm(rec){
       concepto:val("p_conc"),metodo:val("p_met"),notas:edit?(rec.notas||""):""};
     if(edit){ Object.assign(rec,obj); dbWrite('pagos','update',rec); }
     else { obj._id=newId(); PAGOS.push(obj); dbWrite('pagos','insert',obj); }
+    if(esVenta(obj)) maybeCrearClienteDesdePago(obj);
     renderAll();
   }, edit?()=>{dbWrite('pagos','delete',rec);delById(PAGOS,rec._id);renderAll();}:null);
 }
@@ -1440,9 +1459,118 @@ function renderActiveHeavy(){
     case "setters": renderSetters(); break;
     case "pagos": renderPagos(); break;
     case "cuotas": renderCuotas(); break;
+    case "clientes": renderClientes(); break;
     case "config": renderAdsEditor(); renderTeamEditor(); break;
   }
 }
+/* ============================================================
+   CLIENTES — CRM de clientes (auto-creado al cerrar / seguimiento)
+   ============================================================ */
+const _escH=s=>(""+(s==null?"":s)).replace(/&/g,"&amp;").replace(/</g,"&lt;");
+const _av=s=>(""+(s==null?"":s)).replace(/&/g,"&amp;").replace(/"/g,"&quot;");
+function progresoCliente(c){
+  if(!c.fechaInicio || !c.plazoDias) return null;
+  const start=new Date(c.fechaInicio+"T00:00:00"); if(isNaN(start)) return null;
+  const plazo=+c.plazoDias||0; if(!plazo) return null;
+  const diasReales=Math.max(0,Math.round((new Date()-start)/86400000));
+  const dias=Math.min(diasReales,plazo);
+  const pct=Math.min(100,Math.round(diasReales/plazo*100));
+  return {dias,plazo,pct};
+}
+function renderClientes(){
+  const grid=document.getElementById("cliGrid"); if(!grid) return;
+  if(!CLIENTES.length){
+    grid.innerHTML='<div style="color:var(--texto-2);padding:22px;font-size:14px">Todavía no hay clientes. Se crean solos cuando un lead pasa a <b>Adentro en seguimiento</b>, <b>Adentro en llamada</b> o entra una <b>venta</b> — o agregá uno con “+ Nuevo cliente”.</div>';
+    return;
+  }
+  grid.innerHTML=CLIENTES.slice().sort((a,b)=>(a.nombre||"").localeCompare(b.nombre||"")).map(c=>{
+    const pr=progresoCliente(c);
+    const barra = pr
+      ? `<div style="font-size:12px;color:var(--texto-2);display:flex;justify-content:space-between;margin-top:4px"><span>Día ${pr.dias} de ${pr.plazo}</span><span><b>${pr.pct}%</b></span></div><div class="bar-wrap" style="height:10px"><div class="bar" style="width:${pr.pct}%"></div></div>`
+      : `<div style="font-size:12px;color:var(--texto-2);margin-top:4px">Sin plazo definido — editá el cliente para poner los días del programa.</div>`;
+    const closerChip = c.closer ? ` · <span class="${chipClass(c.closer)}" style="font-size:10px;padding:1px 7px">${_escH(c.closer)}</span>` : "";
+    const contacto = [c.email?("✉️ "+_escH(c.email)):"", c.tel?("📞 "+_escH(c.tel)):""].filter(Boolean).join(" · ");
+    return `<div class="cli-card">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+        <div><div style="font-weight:750;font-size:15px">${_escH(c.nombre)}</div>
+        <div style="font-size:12px;color:var(--texto-2)">${_escH(c.plan||"—")}${closerChip}</div></div>
+        <button class="icon-btn" title="Editar cliente" onclick="editCliente('${c._id}')">✏️</button>
+      </div>
+      <div style="display:flex;gap:16px;flex-wrap:wrap;font-size:13px">
+        <div><span style="color:var(--texto-2);font-size:11px">Monto pagado</span><br><b>${fUSD(c.monto||0)}</b></div>
+        <div><span style="color:var(--texto-2);font-size:11px">Cash Collected</span><br><b>${fUSD(c.cashCollected||0)}</b></div>
+        <div><span style="color:var(--texto-2);font-size:11px">Trato cerrado</span><br><b>${fUSD(c.cashTrato||0)}</b></div>
+      </div>
+      ${contacto?`<div style="font-size:12px;color:var(--texto-2)">${contacto}</div>`:""}
+      ${barra}
+      <div><div style="font-size:12px;font-weight:650;margin:8px 0 3px">🏆 Wins / notas</div>
+      <textarea class="cli-wins" data-id="${c._id}" placeholder="Anotá las wins y avances del cliente...">${_escH(c.wins||"")}</textarea></div>
+    </div>`;
+  }).join("");
+  grid.querySelectorAll(".cli-wins").forEach(t=>{ t.onchange=()=>saveWins(t.dataset.id,t.value); });
+}
+function saveWins(id,txt){ const c=CLIENTES.find(x=>x._id===id); if(!c) return; c.wins=txt; dbWrite('clientes','update',c); saveState(); }
+function editCliente(id){ const c=CLIENTES.find(x=>x._id===id); if(c) openClienteForm(c); }
+function openClienteForm(rec){
+  const edit=!!rec; const g=(k,d)=>edit?(rec[k]??d):d;
+  const planOpts=[""].concat(PRODUCTOS);
+  openDrawer(edit?"✏️ Editar cliente":"🧑 Nuevo cliente",`
+    <div class="field"><label>Nombre</label><input type="text" id="c_nombre" value="${_av(g('nombre',''))}"></div>
+    <div class="field-row"><div class="field"><label>Correo</label><input type="text" id="c_email" value="${_av(g('email',''))}"></div>
+      <div class="field"><label>Teléfono</label><input type="text" id="c_tel" value="${_av(g('tel',''))}"></div></div>
+    <div class="field-row"><div class="field"><label>Plan que pagó</label>${sel("c_plan",planOpts,g('plan',''))}</div>
+      <div class="field"><label>Closer</label><input type="text" id="c_closer" value="${_av(g('closer',''))}"></div></div>
+    <div class="field-row"><div class="field"><label>Monto pagado ($)</label><input type="number" id="c_monto" value="${g('monto',0)}"></div>
+      <div class="field"><label>Cash Collected ($)</label><input type="number" id="c_cc" value="${g('cashCollected',0)}"></div></div>
+    <div class="field"><label>Cash Collected Trato Cerrado ($)</label><input type="number" id="c_ct" value="${g('cashTrato',0)}"></div>
+    <div class="field-row"><div class="field"><label>Fecha de inicio</label><input type="date" id="c_fini" value="${g('fechaInicio','')}"></div>
+      <div class="field"><label>Plazo del programa (días)</label><input type="number" id="c_plazo" placeholder="ej. 90" value="${g('plazoDias','')??''}"></div></div>
+    <div class="field"><label>🏆 Wins / notas</label><textarea id="c_wins">${_escH(g('wins',''))}</textarea></div>
+  `,()=>{
+    const nombre=val("c_nombre").trim(); if(!nombre){ alert("Poné el nombre del cliente."); return false; }
+    const obj={nombre,email:val("c_email").trim(),tel:val("c_tel").trim(),plan:val("c_plan"),closer:val("c_closer").trim(),
+      monto:numv("c_monto"),cashCollected:numv("c_cc"),cashTrato:numv("c_ct"),
+      fechaInicio:val("c_fini"),plazoDias:numv("c_plazo")||null,wins:val("c_wins")};
+    if(edit){ Object.assign(rec,obj); dbWrite('clientes','update',rec); }
+    else { obj._id=newId(); obj.leadId=""; CLIENTES.push(obj); dbWrite('clientes','insert',obj); }
+    renderClientes();
+  }, edit?()=>{ dbWrite('clientes','delete',rec); delById(CLIENTES,rec._id); renderClientes(); }:null);
+}
+// Auto-creación desde el lead (situación cerrada / en llamada / en seguimiento)
+function maybeCrearCliente(l){
+  if(!l) return;
+  const dispara = l.cierre==="Sí" || ["Adentro en seguimiento","Adentro en llamada"].includes(l.situacion);
+  if(!dispara) return;
+  const key=(l.nombre||"").trim().toLowerCase(); if(!key) return;
+  let c=CLIENTES.find(x=>(x.leadId&&l._id&&x.leadId===l._id) || (x.nombre||"").trim().toLowerCase()===key);
+  if(c){
+    let ch=false;
+    if(!c.leadId&&l._id){c.leadId=l._id;ch=true;}
+    if(!c.plan && (l.programa||l.producto)){c.plan=l.programa||l.producto;ch=true;}
+    if(!c.email && l.correo){c.email=l.correo;ch=true;}
+    if(!c.tel && l.telefono){c.tel=l.telefono;ch=true;}
+    if((l.cashD1||0)>(c.cashCollected||0)){c.cashCollected=l.cashD1;ch=true;}
+    if((l.cashTrato||0)>(c.cashTrato||0)){c.cashTrato=l.cashTrato;ch=true;}
+    if(!c.monto && (l.cashD1||l.cashTrato)){c.monto=l.cashD1||l.cashTrato;ch=true;}
+    if(ch){ dbWrite('clientes','update',c); if(currentView==='clientes') renderClientes(); }
+    return;
+  }
+  c={_id:newId(),leadId:l._id||"",nombre:l.nombre,email:l.correo||"",tel:l.telefono||"",plan:l.programa||l.producto||"",
+     monto:l.cashD1||l.cashTrato||0,cashCollected:l.cashD1||0,cashTrato:l.cashTrato||0,closer:l.closer||"",
+     fechaInicio:l.fechaPago||today(),plazoDias:null,wins:""};
+  CLIENTES.push(c); dbWrite('clientes','insert',c);
+  if(currentView==='clientes') renderClientes();
+}
+// Auto-creación desde una venta cargada en Registro de Pagos
+function maybeCrearClienteDesdePago(p){
+  const key=(p.cliente||"").trim().toLowerCase(); if(!key) return;
+  let c=CLIENTES.find(x=>(x.nombre||"").trim().toLowerCase()===key);
+  if(c){ let ch=false; if((p.usd||0)>(c.cashCollected||0)){c.cashCollected=p.usd;ch=true;} if(!c.plan&&p.producto){c.plan=p.producto;ch=true;} if(!c.tel&&p.tel){c.tel=p.tel;ch=true;} if(ch)dbWrite('clientes','update',c); if(currentView==='clientes')renderClientes(); return; }
+  c={_id:newId(),leadId:"",nombre:p.cliente,email:"",tel:p.tel||"",plan:p.producto||"",monto:p.usd||0,cashCollected:p.usd||0,cashTrato:0,closer:p.closer||"",fechaInicio:p.fecha||today(),plazoDias:null,wins:""};
+  CLIENTES.push(c); dbWrite('clientes','insert',c);
+  if(currentView==='clientes') renderClientes();
+}
+
 function renderAll(){
   deriveTeam();
   PAID_SET=null; // recomputar cruce lead↔pago (finanzas)
@@ -1498,7 +1626,7 @@ function init(){
   renderAdsEditor();
 
   // nav
-  const titles={home:"📊 Dashboard",leaderboards:"🏆 Métricas",closers:"👤 Closers",agendas:"📋 CRM Agendas",setters:"📞 Setters",pagos:"💰 Registro de Pagos",cuotas:"💸 Cuotas",config:"⚙️ Config"};
+  const titles={home:"📊 Dashboard",leaderboards:"🏆 Métricas",closers:"👤 Closers",agendas:"📋 CRM Agendas",setters:"📞 Setters",pagos:"💰 Registro de Pagos",cuotas:"💸 Cuotas",clientes:"🧑‍🤝‍🧑 Clientes",config:"⚙️ Config"};
   document.querySelectorAll(".navitem").forEach(btn=>{
     btn.onclick=()=>{
       document.querySelectorAll(".navitem").forEach(b=>b.classList.remove("active"));
