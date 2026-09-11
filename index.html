@@ -147,6 +147,7 @@ tr:last-child td{border-bottom:none}
 /* bars */
 .bar-wrap{background:var(--gris-claro);border-radius:999px;height:8px;overflow:hidden;min-width:80px}
 .bar{height:100%;border-radius:999px;background:linear-gradient(90deg,var(--morado),var(--rosa));transition:width .6s var(--ease)}
+.bar-pago{height:100%;border-radius:999px;background:linear-gradient(90deg,#e5484d,#ff8a8d);transition:width .6s var(--ease)}
 /* leaderboard */
 .lb-table td:first-child{font-weight:600;position:sticky;left:0;background:var(--blanco)}
 .lb-table tbody tr:hover td:first-child{background:var(--rosa-soft)}
@@ -1132,8 +1133,8 @@ const MAP={
    to:o=>({id:o._id||undefined,programa:o.programa,alumno:o.alumno,monto_total:o.montoTotal||0,abonado:o.abonado||0,ultimo_cobro:o.ultimoCobro,siguiente_cobro:o.siguienteCobro,closer:o.closer,situacion:o.situacion,cuota:o.cuota}),
    from:r=>({_id:r.id,programa:r.programa,alumno:r.alumno,montoTotal:+r.monto_total||0,abonado:+r.abonado||0,ultimoCobro:r.ultimo_cobro,siguienteCobro:r.siguiente_cobro,closer:r.closer,situacion:r.situacion,cuota:r.cuota}), arr:()=>CUOTAS},
  clientes:{t:'clientes',
-   to:o=>({id:o._id||undefined,lead_id:o.leadId||null,nombre:o.nombre,email:o.email,tel:o.tel,plan:o.plan,monto:o.monto||0,cash_collected:o.cashCollected||0,cash_trato:o.cashTrato||0,closer:o.closer,fecha_inicio:o.fechaInicio||null,plazo_dias:o.plazoDias||null,wins:o.wins||''}),
-   from:r=>({_id:r.id,leadId:r.lead_id||'',nombre:r.nombre,email:r.email||'',tel:r.tel||'',plan:r.plan||'',monto:+r.monto||0,cashCollected:+r.cash_collected||0,cashTrato:+r.cash_trato||0,closer:r.closer||'',fechaInicio:r.fecha_inicio||'',plazoDias:r.plazo_dias||null,wins:r.wins||''}), arr:()=>CLIENTES}
+   to:o=>({id:o._id||undefined,lead_id:o.leadId||null,nombre:o.nombre,email:o.email,tel:o.tel,plan:o.plan,monto:o.monto||0,cash_collected:o.cashCollected||0,cash_trato:o.cashTrato||0,closer:o.closer,fecha_inicio:o.fechaInicio||null,plazo_dias:o.plazoDias||null,proximo_pago:o.proximoPago||null,wins:o.wins||''}),
+   from:r=>({_id:r.id,leadId:r.lead_id||'',nombre:r.nombre,email:r.email||'',tel:r.tel||'',plan:r.plan||'',monto:+r.monto||0,cashCollected:+r.cash_collected||0,cashTrato:+r.cash_trato||0,closer:r.closer||'',fechaInicio:r.fecha_inicio||'',plazoDias:r.plazo_dias||null,proximoPago:r.proximo_pago||'',wins:r.wins||''}), arr:()=>CLIENTES}
 };
 // Paginación: Supabase/PostgREST corta en 1000 filas por request. Traemos TODO en tandas.
 async function fetchAllRows(table){
@@ -1477,6 +1478,17 @@ function progresoCliente(c){
   const pct=Math.min(100,Math.round(diasReales/plazo*100));
   return {dias,plazo,pct};
 }
+function progresoPago(c){
+  if(!c.proximoPago) return null;
+  const end=new Date(c.proximoPago+"T00:00:00"); if(isNaN(end)) return null;
+  let start=new Date((c.fechaInicio||c.proximoPago)+"T00:00:00"); if(isNaN(start)) start=new Date();
+  const now=new Date();
+  const total=Math.max(1,Math.round((end-start)/86400000));
+  const elapsed=Math.round((now-start)/86400000);
+  const pct=Math.max(0,Math.min(100,Math.round(elapsed/total*100)));
+  const faltan=Math.round((end-now)/86400000);
+  return {pct,faltan,end:c.proximoPago};
+}
 function renderClientes(){
   const grid=document.getElementById("cliGrid"); if(!grid) return;
   if(!CLIENTES.length){
@@ -1485,9 +1497,13 @@ function renderClientes(){
   }
   grid.innerHTML=CLIENTES.slice().sort((a,b)=>(a.nombre||"").localeCompare(b.nombre||"")).map(c=>{
     const pr=progresoCliente(c);
+    const pp=progresoPago(c);
     const barra = pr
       ? `<div style="font-size:12px;color:var(--texto-2);display:flex;justify-content:space-between;margin-top:4px"><span>Día ${pr.dias} de ${pr.plazo}</span><span><b>${pr.pct}%</b></span></div><div class="bar-wrap" style="height:10px"><div class="bar" style="width:${pr.pct}%"></div></div>`
       : `<div style="font-size:12px;color:var(--texto-2);margin-top:4px">Sin plazo definido — editá el cliente para poner los días del programa.</div>`;
+    const barraPago = pp
+      ? `<div style="font-size:12px;color:var(--texto-2);display:flex;justify-content:space-between;margin-top:8px"><span>💳 2da cuota: ${pp.end}</span><span><b>${pp.faltan>=0?("faltan "+pp.faltan+"d"):("vencida hace "+(-pp.faltan)+"d")}</b></span></div><div class="bar-wrap" style="height:10px"><div class="bar-pago" style="width:${pp.pct}%"></div></div>`
+      : "";
     const closerChip = c.closer ? ` · <span class="${chipClass(c.closer)}" style="font-size:10px;padding:1px 7px">${_escH(c.closer)}</span>` : "";
     const contacto = [c.email?("✉️ "+_escH(c.email)):"", c.tel?("📞 "+_escH(c.tel)):""].filter(Boolean).join(" · ");
     return `<div class="cli-card">
@@ -1503,6 +1519,7 @@ function renderClientes(){
       </div>
       ${contacto?`<div style="font-size:12px;color:var(--texto-2)">${contacto}</div>`:""}
       ${barra}
+      ${barraPago}
       <div><div style="font-size:12px;font-weight:650;margin:8px 0 3px">🏆 Wins / notas</div>
       <textarea class="cli-wins" data-id="${c._id}" placeholder="Anotá las wins y avances del cliente...">${_escH(c.wins||"")}</textarea></div>
     </div>`;
@@ -1525,12 +1542,13 @@ function openClienteForm(rec){
     <div class="field"><label>Cash Collected Trato Cerrado ($)</label><input type="number" id="c_ct" value="${g('cashTrato',0)}"></div>
     <div class="field-row"><div class="field"><label>Fecha de inicio</label><input type="date" id="c_fini" value="${g('fechaInicio','')}"></div>
       <div class="field"><label>Plazo del programa (días)</label><input type="number" id="c_plazo" placeholder="ej. 90" value="${g('plazoDias','')??''}"></div></div>
+    <div class="field"><label>📅 Fecha de la 2da cuota / próximo pago</label><input type="date" id="c_prox" value="${g('proximoPago','')}"></div>
     <div class="field"><label>🏆 Wins / notas</label><textarea id="c_wins">${_escH(g('wins',''))}</textarea></div>
   `,()=>{
     const nombre=val("c_nombre").trim(); if(!nombre){ alert("Poné el nombre del cliente."); return false; }
     const obj={nombre,email:val("c_email").trim(),tel:val("c_tel").trim(),plan:val("c_plan"),closer:val("c_closer").trim(),
       monto:numv("c_monto"),cashCollected:numv("c_cc"),cashTrato:numv("c_ct"),
-      fechaInicio:val("c_fini"),plazoDias:numv("c_plazo")||null,wins:val("c_wins")};
+      fechaInicio:val("c_fini"),plazoDias:numv("c_plazo")||null,proximoPago:val("c_prox"),wins:val("c_wins")};
     if(edit){ Object.assign(rec,obj); dbWrite('clientes','update',rec); }
     else { obj._id=newId(); obj.leadId=""; CLIENTES.push(obj); dbWrite('clientes','insert',obj); }
     renderClientes();
