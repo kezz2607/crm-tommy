@@ -612,6 +612,21 @@ function inRange(fecha){ return fecha>=STATE.desde && fecha<=STATE.hasta; }
 const usd = p => (p.usd||0) + (p.colones||0)/CONFIG.tipoCambio;
 // ---- CRUCE lead ↔ pago por nombre (FINANZAS es la fuente de verdad) ----
 function normName(s){return (s||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^a-z\s]/g," ").replace(/\s+/g," ").trim();}
+/* Una persona puede tener varias agendas (reagendó, volvió a anotarse). Para
+   contar cierres hay que contar PERSONAS, no filas, o un cliente que pagó una
+   sola vez aparece dos veces. El correo manda; si no hay, el teléfono; si no,
+   el nombre. */
+function keyPersona(l){
+  const mail=(l.correo||"").toLowerCase().trim(); if(mail) return "m:"+mail;
+  const tel=(l.telefono||"").replace(/\D/g,""); if(tel.length>=8) return "t:"+tel;
+  const nom=normName(l.nombre); if(nom) return "n:"+nom;
+  return "id:"+(l._id||Math.random());
+}
+function unaPorPersona(arr){
+  const vistos=new Set(), out=[];
+  for(const l of arr){ const k=keyPersona(l); if(vistos.has(k)) continue; vistos.add(k); out.push(l); }
+  return out;
+}
 let PAID_SET=null;
 function buildPaidSet(){ PAID_SET=new Set(); PAGOS.forEach(p=>{const n=normName(p.cliente); if(!n)return; PAID_SET.add(n); const w=n.split(" "); if(w.length>=2)PAID_SET.add(w[0]+" "+w[1]);}); }
 function pagoFinanzas(l){ if(!PAID_SET)buildPaidSet(); const n=normName(l.nombre); if(!n)return false; if(PAID_SET.has(n))return true; const w=n.split(" "); return w.length>=2 && PAID_SET.has(w[0]+" "+w[1]); }
@@ -635,7 +650,7 @@ function settersIn(){return SETTER_INPUTS.filter(s=>inRange(s.fecha));}
 function dashKPIs(){
   const lis=leadsIn(), pis=pagosIn(), sis=settersIn();
   const cash = pis.reduce((a,p)=>a+usd(p),0);
-  const closedLeads = lis.filter(isClosed);
+  const closedLeads = unaPorPersona(lis.filter(isClosed));
   // Finanzas desde PAGOS: ventas = filas Fee/1ra/PIF (1 por venta)
   const ventas = pis.filter(esVenta);
   const ventasCount = ventas.length;
@@ -652,7 +667,7 @@ function dashKPIs(){
   const cierres = closedLeads.length;
   const shows = lis.filter(l=>l.presento==="Sí").length;
   // Close rate del equipo = promedio de la tasa de cierre EFECTIVA de los closers CON actividad (no arrastra inactivos)
-  const closeRate = avgAct('cierreEfectiva','agendasCalifPres');
+  const closeRate = avgAct('cierreEfectiva','agendasPres');
   const convTot = sis.reduce((a,s)=>a+s.conv.ads+s.conv.hist+s.conv.post+s.conv.fup,0);
   const comTot  = sis.reduce((a,s)=>a+s.com.ads+s.com.hist+s.com.post+s.com.fup,0);
   // Llamadas agendadas reportadas por setters (por fuente) y tasa agenda/calendario
@@ -675,7 +690,7 @@ function closerKPIs(closer){
   const pis = pagosIn().filter(p=>p.closer===closer);
   const presentadas = lis.filter(l=>l.presento==="Sí");
   const califPres = presentadas.filter(l=>l.califica==="Sí");
-  const closed = lis.filter(isClosed);
+  const closed = unaPorPersona(lis.filter(isClosed));
   const agendasTot = lis.length;
   const cierres = closed.length;
   const agendadas = lis.filter(l=>l.presento==="Sí"||l.presento==="No").length;
@@ -691,7 +706,10 @@ function closerKPIs(closer){
     agendasCalifPres: califPres.length,
     pctCalif: presentadas.length? califPres.length/presentadas.length:0,
     cierreGeneral: agendasTot? cierres/agendasTot:0,
-    cierreEfectiva: califPres.length? cierres/califPres.length:0,
+    /* Efectiva = sobre la llamada que SE PRESENTÓ. Antes dividía por las
+       calificadas y presentadas, y si nadie llenaba el campo califica daba
+       cualquier cosa. */
+    cierreEfectiva: presentadas.length? cierres/presentadas.length:0,
     showUp: agendadas? presentadas.length/agendadas:0,
     aovDia1: firstP.length? cashDia1/firstP.length:0,
     aovTrato: cierres? facturado/cierres:0,
@@ -989,7 +1007,7 @@ const LB_DEFS=[
   ["Agendas Calif. Presentadas","agendasCalifPres",n=>n,"sum"],
   ["% Agendas Calificadas","pctCalif",fPct,"avgact","agendasPres"],
   ["Tasa Cierre General","cierreGeneral",fPct,"avgact","agendasTot"],
-  ["Tasa Cierre Efectiva","cierreEfectiva",fPct,"avgact","agendasCalifPres"],
+  ["Tasa Cierre Efectiva (sobre presentadas)","cierreEfectiva",fPct,"avgact","agendasPres"],
   ["Show Up Rate","showUp",fPct,"avgact","agendadas"],
   ["AOV (Día 1)","aovDia1",fUSD,"pool",["cashDia1","ventasDia1"]],
   ["AOV (Trato Cerrado)","aovTrato",fUSD,"pool",["cashTrato","uTot"]],
@@ -1024,6 +1042,34 @@ function renderLeaderboard(){
   });
   html+=`</tbody>`;
   document.getElementById("tblLeaderboard").innerHTML=html;
+  avisoAgendasSinCargar();
+}
+
+/* Si las agendas del período no tienen cargado si la persona se presentó, las
+   tasas de cierre no quieren decir nada: el cierre entra solo (lo detecta el
+   pago) pero la llamada no. Avisa en pantalla en vez de mostrar un número
+   que parece real. */
+function avisoAgendasSinCargar(){
+  const lis=leadsIn();
+  const sin=lis.filter(l=>l.presento!=="Sí"&&l.presento!=="No");
+  const sinCalif=lis.filter(l=>!l.califica);
+  const t=document.getElementById("tblLeaderboard");
+  if(!t) return;
+  let box=document.getElementById("avisoCarga");
+  if(!box){ box=document.createElement("div"); box.id="avisoCarga";
+    box.style.cssText="margin-top:10px;font-size:13px;line-height:1.5"; 
+    t.parentNode.insertBefore(box,t.nextSibling); }
+  if(!lis.length){ box.innerHTML=""; return; }
+  if(!sin.length&&!sinCalif.length){
+    box.innerHTML=`<span style="color:#16a34a">Las ${lis.length} agendas del período tienen el resultado cargado.</span>`;
+    return;
+  }
+  const pct=Math.round(sin.length/lis.length*100);
+  box.innerHTML=`<b style="color:#d97706">Ojo con estos números.</b> De las ${lis.length} agendas del período, `+
+    `<b>${sin.length} (${pct}%) no tienen cargado si la persona se presentó</b>`+
+    (sinCalif.length?` y ${sinCalif.length} no tienen si calificaba`:``)+
+    `. Las tasas de cierre se calculan sobre las llamadas presentadas, así que mientras eso esté vacío el porcentaje no sirve. `+
+    `Los cierres sí aparecen igual, porque los detecta el pago.`;
 }
 
 /* ============================================================
