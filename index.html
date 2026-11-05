@@ -1042,34 +1042,6 @@ function renderLeaderboard(){
   });
   html+=`</tbody>`;
   document.getElementById("tblLeaderboard").innerHTML=html;
-  avisoAgendasSinCargar();
-}
-
-/* Si las agendas del período no tienen cargado si la persona se presentó, las
-   tasas de cierre no quieren decir nada: el cierre entra solo (lo detecta el
-   pago) pero la llamada no. Avisa en pantalla en vez de mostrar un número
-   que parece real. */
-function avisoAgendasSinCargar(){
-  const lis=leadsIn();
-  const sin=lis.filter(l=>l.presento!=="Sí"&&l.presento!=="No");
-  const sinCalif=lis.filter(l=>!l.califica);
-  const t=document.getElementById("tblLeaderboard");
-  if(!t) return;
-  let box=document.getElementById("avisoCarga");
-  if(!box){ box=document.createElement("div"); box.id="avisoCarga";
-    box.style.cssText="margin-top:10px;font-size:13px;line-height:1.5"; 
-    t.parentNode.insertBefore(box,t.nextSibling); }
-  if(!lis.length){ box.innerHTML=""; return; }
-  if(!sin.length&&!sinCalif.length){
-    box.innerHTML=`<span style="color:#16a34a">Las ${lis.length} agendas del período tienen el resultado cargado.</span>`;
-    return;
-  }
-  const pct=Math.round(sin.length/lis.length*100);
-  box.innerHTML=`<b style="color:#d97706">Ojo con estos números.</b> De las ${lis.length} agendas del período, `+
-    `<b>${sin.length} (${pct}%) no tienen cargado si la persona se presentó</b>`+
-    (sinCalif.length?` y ${sinCalif.length} no tienen si calificaba`:``)+
-    `. Las tasas de cierre se calculan sobre las llamadas presentadas, así que mientras eso esté vacío el porcentaje no sirve. `+
-    `Los cierres sí aparecen igual, porque los detecta el pago.`;
 }
 
 /* ============================================================
