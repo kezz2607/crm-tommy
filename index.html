@@ -1078,7 +1078,14 @@ function leadHeaderHTML(){
 function ctxCell(t){ t=t||""; if(!t) return '<td>—</td>'; const s=t.length>48?t.slice(0,48)+"…":t; return `<td class="ctx" onclick="showText(decodeURIComponent('${encodeURIComponent(t)}'))" title="Clic para leer completo">${s} 🔎</td>`; }
 function leadRowHTML(l){
   const ig=l.instagram?`<a href="${l.instagram}" target="_blank" rel="noopener">perfil ↗</a>`:'—';
-  const lk=l.linkLlamada?`<a href="${l.linkLlamada}" target="_blank" rel="noopener">Fathom ↗</a>`:'—';
+  /* El campo del Fathom tambien se usa para escribir el motivo cuando no hay
+     grabacion: hay leads con un punto o con "error de meet". Si eso se pinta
+     como link, el href queda relativo y el clic abre el CRM de nuevo en otra
+     pestaña. Solo es link cuando de verdad es una URL. */
+  const lkv=(l.linkLlamada||"").trim();
+  const lk=/^https?:\/\//i.test(lkv)
+    ? `<a href="${lkv}" target="_blank" rel="noopener">Fathom ↗</a>`
+    : (lkv ? `<span class="chip chip-no" title="${lkv.replace(/"/g,"&quot;")}">sin grabación</span>` : '—');
   const f=l.fechaLlamada||l.fechaAgenda||l.fecha;
   return `<tr>
     <td class="act"><button class="icon-btn" title="Editar" onclick="editLead('${l._id}')">✏️</button></td>
