@@ -334,6 +334,7 @@ td.act{text-align:center;width:42px}
     <div class="card"><table class="lb-table" id="tblWebCal"></table></div>
 
     <div class="section-h">💸 Pauta y costos</div>
+    <p class="pill" style="margin-bottom:8px">El costo por lead se divide por la plata que compra leads (adquisición y Lazarus), no por el gasto de nutrición y reminder, que le hablan a quien ya se anotó.</p>
     <div class="kpi-grid g5" id="kpiWebCosto"></div>
     <div class="card"><div class="card-h"><span>📣 Campañas del lanzamiento</span></div>
       <table class="lb-table" id="tblWebCamp"></table></div>
@@ -829,32 +830,48 @@ async function renderWebinars(forzar){
   w_cruz.textContent=_wn(cl.cruzados); w_rep.textContent=_wn(rp.abrieron);
   w_rep50.textContent=_wn(rp.masDe50);
 
+  /* Solo las llamadas que se agendaron DESPUÉS del webinar. El calendario
+     abierto venía usándose desde octubre y contar todo da un costo por agenda
+     tres veces más barato que el real. */
   const cals = Object.values(ag.porCalendario||{});
   document.getElementById("tblWebCal").innerHTML =
-    '<thead><tr><th>Calendario</th><th>Entra por</th><th class="num">Agendas</th><th class="num">Confirmadas</th><th class="num">Canceladas</th><th class="num">Desde la clase</th></tr></thead><tbody>'+
+    '<thead><tr><th>Calendario</th><th>Entra por</th><th class="num">Agendas del webinar</th><th class="num">Costo por agenda</th></tr></thead><tbody>'+
     cals.map(c=>c.error
-      ? '<tr><td>'+_escH(c.nombre)+'</td><td colspan="5">⚠️ '+_escH(c.error)+'</td></tr>'
+      ? '<tr><td>'+_escH(c.nombre)+'</td><td colspan="3">⚠️ '+_escH(c.error)+'</td></tr>'
       : '<tr><td><b>'+_escH(c.nombre)+'</b></td><td><span class="pill">'+_escH(c.via)+'</span></td>'+
-        '<td class="num">'+_wn(c.total)+'</td><td class="num">'+_wn(c.confirmadas)+'</td>'+
-        '<td class="num">'+_wn(c.canceladas)+'</td><td class="num"><b>'+_wn(c.desdeLaClase)+'</b></td></tr>').join("")+
-    '<tr style="font-weight:700"><td>TOTAL</td><td></td><td class="num">'+_wn(ag.total)+'</td><td class="num">'+_wn(ag.confirmadas)+
-    '</td><td class="num">'+_wn(ag.canceladas)+'</td><td class="num">'+_wn(ag.desdeLaClase)+'</td></tr></tbody>';
+        '<td class="num"><b>'+_wn(c.desdeLaClase)+'</b></td>'+
+        '<td class="num">'+(ad.inversion&&c.desdeLaClase?_wusd(ad.inversion/ag.desdeLaClase):"—")+'</td></tr>').join("")+
+    '<tr style="font-weight:700"><td>TOTAL</td><td></td><td class="num">'+_wn(ag.desdeLaClase)+
+    '</td><td class="num">'+_wusd(co.costoPorAgenda)+'</td></tr></tbody>';
 
   document.getElementById("kpiWebCosto").innerHTML =
     kpiCard("Inversión en ads","💸","morado","w_inv")+
     kpiCard("Costo por lead","🎫","rosa","w_cpl")+
     kpiCard("Costo por calificado","🔥","verde","w_cplc")+
-    kpiCard("Costo por agenda (total)","📆","info","w_cpa")+
-    kpiCard("Costo por agenda de la clase","📌","rosa","w_cpac");
+    kpiCard("Costo por agenda del webinar","📆","info","w_cpa")+
+    kpiCard("Costo por presentado","🎬","rosa","w_cpp");
   w_inv.textContent=_wusd(ad.inversion); w_cpl.textContent=_wusd(co.cpl);
   w_cplc.textContent=_wusd(co.cplCalificado); w_cpa.textContent=_wusd(co.costoPorAgenda);
-  w_cpac.textContent=_wusd(co.costoPorAgendaDeLaClase);
+  w_cpp.textContent=_wusd(co.costoPorPresentado);
 
+  /* Nutrición y reminder le hablan a gente que YA se anotó: su CPL no
+     significa nada. De esas se mira la frecuencia, que es la que dice si están
+     quemando a la audiencia. */
   document.getElementById("tblWebCamp").innerHTML = (ad.campanas&&ad.campanas.length)
-    ? '<thead><tr><th>Campaña</th><th>Capa</th><th class="num">Gasto</th><th class="num">Clics</th><th class="num">% del total</th></tr></thead><tbody>'+
-      ad.campanas.map(c=>'<tr><td>'+_escH(c.campana)+'</td><td><span class="pill">'+_escH(c.capa)+'</span></td>'+
-        '<td class="num">'+_wusd(c.gasto)+'</td><td class="num">'+_wn(c.clicks)+'</td>'+
-        '<td class="num">'+(ad.inversion?_wpct(c.gasto/ad.inversion):"—")+'</td></tr>').join("")+
+    ? '<thead><tr><th>Campaña</th><th class="num">Gasto</th><th class="num">Leads</th><th class="num">CPL</th>'+
+      '<th class="num">Calificados</th><th class="num">CPL calificado</th><th class="num">Frecuencia</th></tr></thead><tbody>'+
+      ad.campanas.map(function(c){
+        const esFrec = c.mide==="frecuencia";
+        const frec = c.frecuencia==null ? "—"
+          : '<b style="color:'+(c.frecuencia>=3?"#b91c1c":c.frecuencia>=2?"#b45309":"inherit")+'">'+c.frecuencia.toFixed(2)+'</b>';
+        return '<tr><td>'+_escH(c.campana)+' <span class="pill">'+_escH(c.capa)+'</span></td>'+
+          '<td class="num">'+_wusd(c.gasto)+'</td>'+
+          (esFrec
+            ? '<td class="num" colspan="4" style="color:#8b8b8b">no compra leads · se mide por frecuencia</td>'
+            : '<td class="num">'+_wn(c.registros)+'</td><td class="num">'+_wusd(c.cpl)+'</td>'+
+              '<td class="num">'+_wn(c.calificados)+'</td><td class="num">'+_wusd(c.cplCalificado)+'</td>')+
+          '<td class="num">'+frec+'</td></tr>';
+      }).join("")+
       '</tbody>'
     : '<tbody><tr><td style="padding:16px">Sin campañas en el rango'+(ad.error?' · '+_escH(ad.error):'')+'</td></tr></tbody>';
 
