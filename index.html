@@ -242,6 +242,7 @@ td.act{text-align:center;width:42px}
   </div>
   <button class="navitem active" data-view="home"><span class="ico">📊</span><span class="txt">Dashboard</span></button>
   <button class="navitem" data-view="leaderboards"><span class="ico">🏆</span><span class="txt">Métricas</span></button>
+  <button class="navitem" data-view="webinars"><span class="ico">🎥</span><span class="txt">Webinars</span></button>
   <button class="navitem" data-view="closers"><span class="ico">👤</span><span class="txt">Closers</span></button>
   <button class="navitem" data-view="clientes"><span class="ico">🧑‍🤝‍🧑</span><span class="txt">Clientes</span></button>
   <button class="navitem" data-view="agendas"><span class="ico">📋</span><span class="txt">CRM Agendas</span></button>
@@ -310,6 +311,36 @@ td.act{text-align:center;width:42px}
       <div class="card-h"><span>🏆 Métricas de Closers</span><button class="btn btn-add" onclick="openMinsForm()">✏️ Editar mínimos esperados</button></div>
       <table class="lb-table" id="tblLeaderboard"></table>
     </div>
+  </section>
+
+  <!-- ===== WEBINARS ===== -->
+  <section class="view hidden" id="view-webinars">
+    <div class="periodbar">
+      <label>🎥 Clase</label>
+      <select id="webSelect"><option value="2026-11-03">Martes 3 de noviembre</option></select>
+      <span class="pill" id="webPill">—</span>
+      <button class="btn btn-add" style="margin-left:auto" onclick="renderWebinars(true)">↻ Actualizar</button>
+    </div>
+
+    <div id="webAvisos"></div>
+
+    <div class="section-h">📥 Registro</div>
+    <div class="kpi-grid g5" id="kpiWebReg"></div>
+
+    <div class="section-h">🎬 La clase y el replay</div>
+    <div class="kpi-grid g5" id="kpiWebClase"></div>
+
+    <div class="section-h">📆 Agendas · los dos calendarios de GoHighLevel</div>
+    <div class="card"><table class="lb-table" id="tblWebCal"></table></div>
+
+    <div class="section-h">💸 Pauta y costos</div>
+    <div class="kpi-grid g5" id="kpiWebCosto"></div>
+    <div class="card"><div class="card-h"><span>📣 Campañas del lanzamiento</span></div>
+      <table class="lb-table" id="tblWebCamp"></table></div>
+
+    <div class="section-h">💰 Ventas del lanzamiento</div>
+    <div class="kpi-grid g5" id="kpiWebVentas"></div>
+    <p class="pill" style="margin-top:10px">Las ventas salen de este CRM (pagos y cierres desde el día de la clase). El resto sale del sitio de Tomy: la base del webinar, los dos calendarios de GoHighLevel y Meta.</p>
   </section>
 
   <!-- ===== CLOSERS ===== -->
@@ -717,6 +748,124 @@ function countUp(el,target,fmt){
 function kpiCard(lbl,emoji,accent,valId){
   return `<div class="kpi accent-${accent}"><div class="lbl">${emoji} ${lbl}</div><div class="val" id="${valId}">—</div></div>`;
 }
+/* ============================================================
+   WEBINARS — las metricas de la clase, en un solo lugar.
+
+   El registro del webinar, el gasto de Meta y los dos calendarios de
+   GoHighLevel no se pueden leer desde aca: webinar_leads tiene RLS y los tokens
+   viven en el servidor. Por eso esto consulta un endpoint del propio sitio de
+   Tomy que devuelve SOLO numeros, sin un nombre ni un correo adentro.
+   Las ventas si salen de este CRM, que es quien sabe que pago es de quien.
+   ============================================================ */
+const WEB_API  = "https://tomylalanne.com/api/webinar-metricas";
+const WEB_PASS = "crmtomy2026";      /* solo abre esta lectura de numeros */
+const WEB_CLASE = "2026-11-03";      /* el dia de la clase, para cortar las ventas */
+let WEB_CACHE = null;
+
+const _wn = n => (n==null ? "—" : Math.round(n).toLocaleString("en-US"));
+const _wusd = n => (n==null ? "—" : "$"+(Math.round(n*100)/100).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2}));
+const _wpct = n => (n==null ? "—" : (n*100).toFixed(1)+"%");
+
+/* Las ventas del lanzamiento: lo cobrado y los cierres desde el dia de la clase. */
+function ventasDelLanzamiento(){
+  const desde = WEB_CLASE;
+  const pagos = (typeof PAGOS!=="undefined"?PAGOS:[]).filter(p=>p.fecha && p.fecha>=desde);
+  const cash  = pagos.reduce((a,p)=>a+(+p.usd||0)+((+p.colones||0)/(CONFIG&&CONFIG.tipoCambio?CONFIG.tipoCambio:1)),0);
+  const cierres = (typeof LEADS!=="undefined"?LEADS:[])
+    .filter(l=>l.cierre && l.fecha && l.fecha>=desde).length;
+  return { cash, cierres, pagos: pagos.length };
+}
+
+async function renderWebinars(forzar){
+  const pill = document.getElementById("webPill");
+  if(!WEB_CACHE || forzar){
+    pill.textContent = "cargando…";
+    try{
+      const r = await fetch(WEB_API+"?clave="+encodeURIComponent(WEB_PASS), {cache:"no-store"});
+      if(!r.ok) throw new Error("no se pudo leer ("+r.status+")");
+      WEB_CACHE = await r.json();
+    }catch(e){
+      pill.textContent = "sin conexión";
+      document.getElementById("webAvisos").innerHTML =
+        '<div class="card" style="border-color:#b91c1c"><div class="card-h"><span>⚠️ No se pudieron traer las métricas</span></div>'+
+        '<p style="padding:0 16px 14px">'+_escH(e.message)+'. El resto del CRM sigue andando.</p></div>';
+      return;
+    }
+  }
+  const D = WEB_CACHE, V = ventasDelLanzamiento();
+  pill.textContent = "al "+new Date(D.generado).toLocaleString("es-AR",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"});
+
+  /* lo que no cierra, arriba de todo y en rojo */
+  document.getElementById("webAvisos").innerHTML = (D.avisos&&D.avisos.length)
+    ? '<div class="card" style="border-color:#f59e0b"><div class="card-h"><span>⚠️ Revisar</span></div><ul style="margin:0;padding:0 16px 14px 34px">'+
+      D.avisos.map(a=>'<li style="margin:4px 0">'+_escH(a)+'</li>').join("")+'</ul></div>'
+    : '';
+
+  const reg = D.registro||{}, cl = D.clase_asistencia||{}, rp = D.replay||{}, ag = D.agendas||{}, co = D.costos||{}, ad = D.ads||{};
+
+  document.getElementById("kpiWebReg").innerHTML =
+    kpiCard("Registros","📥","rosa","w_reg")+
+    kpiCard("Completos","✅","verde","w_comp")+
+    kpiCard("A medias","⏳","info","w_parc")+
+    kpiCard("Calificados","🔥","morado","w_cal")+
+    kpiCard("% Calificados","📊","info","w_pcal");
+  w_reg.textContent=_wn(reg.total); w_comp.textContent=_wn(reg.completos);
+  w_parc.textContent=_wn(reg.parciales); w_cal.textContent=_wn(reg.calificados);
+  w_pcal.textContent=_wpct(reg.pctCalificado);
+
+  const show = (cl.entraron && reg.completos) ? cl.entraron/reg.completos : null;
+  document.getElementById("kpiWebClase").innerHTML =
+    kpiCard("Entraron a la clase","🎬","verde","w_pres")+
+    kpiCard("Show rate","🎯","rosa","w_show")+
+    kpiCard("Cruzaron con la base","🔗","info","w_cruz")+
+    kpiCard("Abrieron el replay","▶️","morado","w_rep")+
+    kpiCard("Vieron +50%","⏱","info","w_rep50");
+  w_pres.textContent=_wn(cl.entraron); w_show.textContent=_wpct(show);
+  w_cruz.textContent=_wn(cl.cruzados); w_rep.textContent=_wn(rp.abrieron);
+  w_rep50.textContent=_wn(rp.masDe50);
+
+  const cals = Object.values(ag.porCalendario||{});
+  document.getElementById("tblWebCal").innerHTML =
+    '<thead><tr><th>Calendario</th><th>Entra por</th><th class="num">Agendas</th><th class="num">Confirmadas</th><th class="num">Canceladas</th><th class="num">Desde la clase</th></tr></thead><tbody>'+
+    cals.map(c=>c.error
+      ? '<tr><td>'+_escH(c.nombre)+'</td><td colspan="5">⚠️ '+_escH(c.error)+'</td></tr>'
+      : '<tr><td><b>'+_escH(c.nombre)+'</b></td><td><span class="pill">'+_escH(c.via)+'</span></td>'+
+        '<td class="num">'+_wn(c.total)+'</td><td class="num">'+_wn(c.confirmadas)+'</td>'+
+        '<td class="num">'+_wn(c.canceladas)+'</td><td class="num"><b>'+_wn(c.desdeLaClase)+'</b></td></tr>').join("")+
+    '<tr style="font-weight:700"><td>TOTAL</td><td></td><td class="num">'+_wn(ag.total)+'</td><td class="num">'+_wn(ag.confirmadas)+
+    '</td><td class="num">'+_wn(ag.canceladas)+'</td><td class="num">'+_wn(ag.desdeLaClase)+'</td></tr></tbody>';
+
+  document.getElementById("kpiWebCosto").innerHTML =
+    kpiCard("Inversión en ads","💸","morado","w_inv")+
+    kpiCard("Costo por lead","🎫","rosa","w_cpl")+
+    kpiCard("Costo por calificado","🔥","verde","w_cplc")+
+    kpiCard("Costo por agenda (total)","📆","info","w_cpa")+
+    kpiCard("Costo por agenda de la clase","📌","rosa","w_cpac");
+  w_inv.textContent=_wusd(ad.inversion); w_cpl.textContent=_wusd(co.cpl);
+  w_cplc.textContent=_wusd(co.cplCalificado); w_cpa.textContent=_wusd(co.costoPorAgenda);
+  w_cpac.textContent=_wusd(co.costoPorAgendaDeLaClase);
+
+  document.getElementById("tblWebCamp").innerHTML = (ad.campanas&&ad.campanas.length)
+    ? '<thead><tr><th>Campaña</th><th>Capa</th><th class="num">Gasto</th><th class="num">Clics</th><th class="num">% del total</th></tr></thead><tbody>'+
+      ad.campanas.map(c=>'<tr><td>'+_escH(c.campana)+'</td><td><span class="pill">'+_escH(c.capa)+'</span></td>'+
+        '<td class="num">'+_wusd(c.gasto)+'</td><td class="num">'+_wn(c.clicks)+'</td>'+
+        '<td class="num">'+(ad.inversion?_wpct(c.gasto/ad.inversion):"—")+'</td></tr>').join("")+
+      '</tbody>'
+    : '<tbody><tr><td style="padding:16px">Sin campañas en el rango'+(ad.error?' · '+_escH(ad.error):'')+'</td></tr></tbody>';
+
+  const roas = (ad.inversion && V.cash) ? V.cash/ad.inversion : null;
+  const cpv  = (ad.inversion && V.cierres) ? ad.inversion/V.cierres : null;
+  document.getElementById("kpiWebVentas").innerHTML =
+    kpiCard("Cash desde la clase","💰","verde","w_cash")+
+    kpiCard("Cierres","✅","rosa","w_cie")+
+    kpiCard("Costo por venta","🧾","morado","w_cpv")+
+    kpiCard("ROAS del lanzamiento","🚀","info","w_roas")+
+    kpiCard("Agendas por venta","📞","info","w_apv");
+  w_cash.textContent=_wusd(V.cash); w_cie.textContent=_wn(V.cierres);
+  w_cpv.textContent=_wusd(cpv); w_roas.textContent = roas==null?"—":(Math.round(roas*100)/100)+"x";
+  w_apv.textContent = V.cierres ? (Math.round(ag.desdeLaClase/V.cierres*10)/10) : "—";
+}
+
 function renderDashboard(){
   const k=dashKPIs();
   document.getElementById("kpiFin").innerHTML =
@@ -1454,6 +1603,7 @@ function openMinsForm(){
 let currentView="home";
 function renderActiveHeavy(){
   switch(currentView){
+    case "webinars": renderWebinars(); break;
     case "leaderboards": renderLeaderboard(); break;
     case "closers": renderClosers(); break;
     case "agendas": renderAgendas(); break;
@@ -1684,7 +1834,7 @@ function init(){
   renderAdsEditor();
 
   // nav
-  const titles={home:"📊 Dashboard",leaderboards:"🏆 Métricas",closers:"👤 Closers",agendas:"📋 CRM Agendas",setters:"📞 Setters",pagos:"💰 Registro de Pagos",cuotas:"💸 Cuotas",clientes:"🧑‍🤝‍🧑 Clientes",config:"⚙️ Config"};
+  const titles={home:"📊 Dashboard",leaderboards:"🏆 Métricas",webinars:"🎥 Webinars",closers:"👤 Closers",agendas:"📋 CRM Agendas",setters:"📞 Setters",pagos:"💰 Registro de Pagos",cuotas:"💸 Cuotas",clientes:"🧑‍🤝‍🧑 Clientes",config:"⚙️ Config"};
   document.querySelectorAll(".navitem").forEach(btn=>{
     btn.onclick=()=>{
       document.querySelectorAll(".navitem").forEach(b=>b.classList.remove("active"));
