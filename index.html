@@ -327,6 +327,9 @@ td.act{text-align:center;width:42px}
     <div class="section-h">📥 Registro</div>
     <div class="kpi-grid g5" id="kpiWebReg"></div>
 
+    <div class="section-h">👥 El grupo de WhatsApp</div>
+    <div class="kpi-grid" id="kpiWebGrupo"></div>
+
     <div class="section-h">🎬 La clase y el replay</div>
     <div class="kpi-grid g5" id="kpiWebClase"></div>
 
@@ -818,6 +821,18 @@ async function renderWebinars(forzar){
   w_reg.textContent=_wn(reg.total); w_comp.textContent=_wn(reg.completos);
   w_parc.textContent=_wn(reg.parciales); w_cal.textContent=_wn(reg.calificados);
   w_pcal.textContent=_wpct(reg.pctCalificado);
+
+  /* El grupo de WhatsApp: el número lo carga Jorge a mano desde el panel,
+     porque WhatsApp no lo dice por ningún lado. */
+  const gr = D.grupo||{};
+  document.getElementById("kpiWebGrupo").innerHTML =
+    kpiCard("En el grupo al empezar","👥","verde","w_gru")+
+    kpiCard("% de los registros","📊","info","w_gpct")+
+    kpiCard("Costo por persona del grupo","💸","morado","w_gcost")+
+    kpiCard("Del grupo a la clase","🎬","rosa","w_gcl");
+  w_gru.textContent=_wn(gr.personas); w_gpct.textContent=_wpct(gr.pctDeRegistros);
+  w_gcost.textContent=_wusd(co.costoPorPersonaDelGrupo);
+  w_gcl.textContent=(gr.personas&&cl.entraron)?_wpct(cl.entraron/gr.personas):"—";
 
   const show = (cl.entraron && reg.completos) ? cl.entraron/reg.completos : null;
   document.getElementById("kpiWebClase").innerHTML =
