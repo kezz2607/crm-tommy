@@ -766,14 +766,19 @@ const _wn = n => (n==null ? "—" : Math.round(n).toLocaleString("en-US"));
 const _wusd = n => (n==null ? "—" : "$"+(Math.round(n*100)/100).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2}));
 const _wpct = n => (n==null ? "—" : (n*100).toFixed(1)+"%");
 
-/* Las ventas del lanzamiento: lo cobrado y los cierres desde el dia de la clase. */
+/* Las ventas del lanzamiento: lo cobrado y las ventas desde el dia de la clase.
+
+   Usa las MISMAS definiciones que el resto del CRM (isClosed, esVenta, usd). Si
+   acá se contara distinto, esta pantalla diría una cosa y el Dashboard otra, y
+   no habría forma de saber cuál de las dos miente. */
 function ventasDelLanzamiento(){
   const desde = WEB_CLASE;
   const pagos = (typeof PAGOS!=="undefined"?PAGOS:[]).filter(p=>p.fecha && p.fecha>=desde);
-  const cash  = pagos.reduce((a,p)=>a+(+p.usd||0)+((+p.colones||0)/(CONFIG&&CONFIG.tipoCambio?CONFIG.tipoCambio:1)),0);
+  const cash  = pagos.reduce((a,p)=>a+usd(p),0);
+  const ventas = pagos.filter(esVenta);            /* Fee, 1ra Cuota o PIF: una fila por venta */
   const cierres = (typeof LEADS!=="undefined"?LEADS:[])
-    .filter(l=>l.cierre && l.fecha && l.fecha>=desde).length;
-  return { cash, cierres, pagos: pagos.length };
+    .filter(l=>l.fecha && l.fecha>=desde && isClosed(l)).length;
+  return { cash, cierres, ventas: ventas.length, pagos: pagos.length };
 }
 
 async function renderWebinars(forzar){
@@ -854,16 +859,16 @@ async function renderWebinars(forzar){
     : '<tbody><tr><td style="padding:16px">Sin campañas en el rango'+(ad.error?' · '+_escH(ad.error):'')+'</td></tr></tbody>';
 
   const roas = (ad.inversion && V.cash) ? V.cash/ad.inversion : null;
-  const cpv  = (ad.inversion && V.cierres) ? ad.inversion/V.cierres : null;
+  const cpv  = (ad.inversion && V.ventas) ? ad.inversion/V.ventas : null;
   document.getElementById("kpiWebVentas").innerHTML =
     kpiCard("Cash desde la clase","💰","verde","w_cash")+
-    kpiCard("Cierres","✅","rosa","w_cie")+
+    kpiCard("Ventas (1er pago)","✅","rosa","w_cie")+
     kpiCard("Costo por venta","🧾","morado","w_cpv")+
     kpiCard("ROAS del lanzamiento","🚀","info","w_roas")+
     kpiCard("Agendas por venta","📞","info","w_apv");
-  w_cash.textContent=_wusd(V.cash); w_cie.textContent=_wn(V.cierres);
+  w_cash.textContent=_wusd(V.cash); w_cie.textContent=_wn(V.ventas);
   w_cpv.textContent=_wusd(cpv); w_roas.textContent = roas==null?"—":(Math.round(roas*100)/100)+"x";
-  w_apv.textContent = V.cierres ? (Math.round(ag.desdeLaClase/V.cierres*10)/10) : "—";
+  w_apv.textContent = V.ventas ? (Math.round(ag.desdeLaClase/V.ventas*10)/10) : "—";
 }
 
 function renderDashboard(){
